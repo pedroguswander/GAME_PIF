@@ -1,6 +1,13 @@
 # Prerequisites
 *.d
 
+# Excutables
+cli-lib-example
+cli-lib-example2
+
+#Tiaguinho's game
+main.c
+
 # Object files
 *.o
 *.ko
