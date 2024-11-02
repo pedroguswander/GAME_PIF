@@ -4,7 +4,7 @@
  * Author: Tiago Barros
  * Based on "From C to C++ course - 2002"
 */
-
+/*
 #include <string.h>
 
 #include "screen.h"
@@ -22,12 +22,12 @@ void printHello(int nextX, int nextY)
     x = nextX;
     y = nextY;
     screenGotoxy(x, y);
-    printf("Hello World");
+    printf("Hi");
 }
 
 void printKey(int ch)
 {
-    screenSetColor(YELLOW, DARKGRAY);
+    screenSetColor(BLUE, DARKGRAY);
     screenGotoxy(35, 22);
     printf("Key code :");
 
@@ -86,3 +86,4 @@ int main()
 
     return 0;
 }
+*/
