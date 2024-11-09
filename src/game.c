@@ -56,6 +56,22 @@ typedef struct particle {
     char img;
     struct particle *next;
 } particle;
+void draw_border() {
+
+    for (int x = MINX; x <= MAXX; x++) {
+        screenGotoxy(x, MINY);
+        printf("-");
+        screenGotoxy(x, MAXY);
+        printf("-");
+    }
+
+    for (int y = MINY; y <= MAXY; y++) {
+        screenGotoxy(MINX, y);
+        printf("|");
+        screenGotoxy(MAXX, y);
+        printf("|");
+    }
+}
 
 int delay_object(double delay_time, clock_t *last_t) {
     clock_t current_t = clock();
@@ -213,18 +229,18 @@ int main() {
     clock_t spawn_clock = clock(), move_clock = clock();
 
     int run = 1;
-
+    
     while(run) {
         if (keyhit()) {
             switch (readch()) {
                 case 97: //move left A
-                    if (ship.x > MINX) {
+                    if (ship.x > MINX + 1) {
                         ship.direction = -1;
                         move(&ship);
                     }
                 break;
                 case 100://move right D
-                    if (ship.x < (MAXX - PLAYER_WIDTH)) {
+                    if (ship.x < (MAXX - PLAYER_WIDTH - 1)) {
                         ship.direction = 1;
                         move(&ship);
                     }
@@ -241,10 +257,7 @@ int main() {
             }
         }
         system("clear");
-        screenGotoxy(MINX, 2);
-        printf("|");
-        screenGotoxy(MAXX, 2);
-        printf("|");
+        draw_border();
 
         if (delay_object(3.0, &spawn_clock)) {
             int asteroid_x = create_random_Xposition(MINX, MAXX, 9);
