@@ -8,13 +8,24 @@ Command Line Interface library, for developing CLI applications and games in C. 
 - It is necessary to have GCC installed.
 
 ## Como jogar
-The file `main.c` has an example of how to use the Keyboard, Screen nd Timer functions. 
-
-To build this example via command line, just switch to library root directory and type the following command:
+1)  Clone o repositório:
 ```
-$ gcc ./src/*.c -I./include -o cli-lib-example
+https://github.com/pedroguswander/jogo_pif.git
 ```
 
-To use this library to create your own apps, simply add source and header files to your project and compile it together with your own code, 
-replacing the main.c file to your own.
-## Euipe
+2) Entre na pasta do repositório:
+```
+cd src/
+```
+
+3) Compile o código
+```
+gcc ./src/*.c -I./include -o game
+```
+4) Rode o código:
+```
+./game
+```
+
+Se divirta!
+## Equipe
