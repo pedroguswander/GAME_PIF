@@ -7,7 +7,7 @@ Command Line Interface library, for developing CLI applications and games in C. 
    - MacOS
 - It is necessary to have GCC installed.
 
-## Como jogar
+## Como jogar:
 1)  Clone o repositório:
 ```
 https://github.com/pedroguswander/jogo_pif.git
