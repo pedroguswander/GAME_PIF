@@ -262,6 +262,11 @@ void draw_object(object *head) {
         iterate_object = iterate_object->next;
     }
 }
+void spawn_enemy(object **head) {
+    int enemy_x = create_random_Xposition(MINX, MAXX, 9);
+    add_object(head, enemy_x, 4, 2, 1, object_sprite2);
+}
+
 void move_object(object **head, int player_y) {
     object *iterate_object = *head, *prev_object = NULL;
     while (iterate_object != NULL) {
@@ -332,8 +337,12 @@ int main() {
         draw_border();
 
 
-        if (delay_object(0.003, &move_clock)) {
-            move_object(&enemy, ship.y);}
+        if (delay_object(0.002, &move_clock)) {
+            move_object(&enemy, ship.y);
+            if (delay_object(0.02, &spawn_clock)) {
+            spawn_enemy(&enemy);
+        }
+        }
 
 
         run = check_collision(ship, enemy);
