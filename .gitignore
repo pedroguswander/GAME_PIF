@@ -8,6 +8,9 @@ cli-lib-example2
 #Tiaguinho's game
 main.c
 
+#exe
+game
+
 # Object files
 *.o
 *.ko
