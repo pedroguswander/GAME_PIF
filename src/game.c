@@ -15,7 +15,7 @@
 
 #define PLAYER_VEL  1
 #define BULLET_VEL 1
-#define OBJECT_VEL 4
+#define OBJECT_VEL 1
 #define PLAYER_HEIGHT 3
 #define PLAYER_WIDTH 3
 
@@ -91,7 +91,7 @@ int check_collision(player ship, object *objects) {
     object *iterate_object = objects;
 
     while (iterate_object != NULL) {
-        //int object_lenght = strlen(object_sprite1);
+
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++) {
             if (((ship.x <= (iterate_object->pos.x + i) && (ship.x + PLAYER_WIDTH - 1) >= iterate_object->pos.x + i)) && (ship.y <= (iterate_object->pos.y) && (ship.y + PLAYER_HEIGHT - 1) >= (iterate_object->pos.y))) {
                 return 0;
@@ -262,14 +262,18 @@ void draw_object(object *head) {
         iterate_object = iterate_object->next;
     }
 }
-
-void move_object(object *head) {
+void move_object(object *head, int player_y) {
     object *iterate_object = head;
-    while(iterate_object != NULL) {
-        iterate_object->pos.y += OBJECT_VEL;
+    while (iterate_object != NULL) {
+        if (iterate_object->pos.y < player_y) {
+            iterate_object->pos.y += OBJECT_VEL;
+        } else if (iterate_object->pos.y > player_y) {
+            iterate_object->pos.y -= OBJECT_VEL;
+        }
         iterate_object = iterate_object->next;
     }
 }
+
 
 void move(player *ship) {
     ship->x += PLAYER_VEL * ship->direction;
@@ -291,24 +295,24 @@ int main() {
     while(run) {
         if (keyhit()) {
             switch (readch()) {
-                case 97: //move left A
+                case 97:
                     if (ship.x > MINX + 1) {
                         ship.direction = -1;
                         move(&ship);
                     }
                 break;
-                case 100://move right D
+                case 100:
                     if (ship.x < (MAXX - PLAYER_WIDTH - 1)) {
                         ship.direction = 1;
                         move(&ship);
                     }
                 break;
-                case 120: //shoot particle X
+                case 120:
                     if (len_bullets(ship_bullets) < 5) {
                         add_bullet(&ship_bullets, ship.x, ship.y-1, '|');
                     }
                     break;
-                case 32: //quit game SPACE
+                case 32:
                     run = 0;
                     break;
                 default:
@@ -317,14 +321,10 @@ int main() {
         system("clear");
         draw_border();
 
-        /*if (delay_object(3.0, &spawn_clock)) {
-            int enemy_x = create_random_Xposition(MINX, MAXX, 9);
-            add_object(&enemy, enemy_x, -2, 2, object_sprite2);
-        }*/
 
-        if (delay_object(1.0, &move_clock)) {
-            move_object(enemy);
-        }
+        if (delay_object(0.003, &move_clock)) {
+            move_object(enemy, ship.y);}
+
 
         run = check_collision(ship, enemy);
         handle_collision_object_bullet(&enemy, &ship_bullets, 3, 4);
@@ -335,7 +335,7 @@ int main() {
         draw_bullets(ship_bullets);
 
         screenUpdate();
-        usleep(33333); //30 FPS
+        usleep(33333);
     }
 
 
@@ -344,7 +344,7 @@ int main() {
     usleep(100000);
     keyboardDestroy();
     screenDestroy();
-    //timerDestroy();
+
 
     return 0;
 }
