@@ -262,18 +262,28 @@ void draw_object(object *head) {
         iterate_object = iterate_object->next;
     }
 }
-void move_object(object *head, int player_y) {
-    object *iterate_object = head;
+void move_object(object **head, int player_y) {
+    object *iterate_object = *head, *prev_object = NULL;
     while (iterate_object != NULL) {
-        if (iterate_object->pos.y < player_y) {
+
+        if (iterate_object->pos.y < player_y + 5) {
             iterate_object->pos.y += OBJECT_VEL;
-        } else if (iterate_object->pos.y > player_y) {
-            iterate_object->pos.y -= OBJECT_VEL;
         }
-        iterate_object = iterate_object->next;
+        if (iterate_object->pos.y >= player_y + 5) {
+            if (prev_object == NULL) {
+                *head = iterate_object->next;
+            } else {
+                prev_object->next = iterate_object->next;
+            }
+
+            free(iterate_object);
+            iterate_object = (prev_object == NULL) ? *head : prev_object->next;
+        } else {
+            prev_object = iterate_object;
+            iterate_object = iterate_object->next;
+        }
     }
 }
-
 
 void move(player *ship) {
     ship->x += PLAYER_VEL * ship->direction;
@@ -323,7 +333,7 @@ int main() {
 
 
         if (delay_object(0.003, &move_clock)) {
-            move_object(enemy, ship.y);}
+            move_object(&enemy, ship.y);}
 
 
         run = check_collision(ship, enemy);
