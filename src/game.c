@@ -56,6 +56,7 @@ typedef struct particle {
     char img;
     struct particle *next;
 } particle;
+
 void draw_border() {
 
     for (int x = MINX; x <= MAXX; x++) {
@@ -88,6 +89,7 @@ int create_random_Xposition(int minx, int maxx, int sprite_length) {
 
 int check_collision(player ship, object *objects) {
     object *iterate_object = objects;
+
     while (iterate_object != NULL) {
         //int object_lenght = strlen(object_sprite1);
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++) {
@@ -98,6 +100,58 @@ int check_collision(player ship, object *objects) {
         iterate_object = iterate_object->next;
     }
     return 1;
+}
+
+int is_obj_destroyed(particle *bullet, object *obj, int hit_area_init, int hit_area_end) {
+    if (obj->is_destructible) {
+        if ((bullet->pos.x >= obj->pos.x + hit_area_init) && (bullet->pos.x <= obj->pos.x + hit_area_end)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void handle_collision_object_bullet(object **obj_head, particle **bullet_head, int hit_area_init, int hit_area_end) {
+    object *objects = *obj_head, *obj_temp = *obj_head;
+    particle *bullets = *bullet_head, *bullet_temp = *bullet_head;
+
+    if (objects != NULL && bullets != NULL) {
+        for (int i = 0; (*obj_head)->sprite[i] != '\0'; i++) {
+            if (((*bullet_head)->pos.y == (*obj_head)->pos.y) && ((*bullet_head)->pos.x == (*obj_head)->pos.x + i)) {
+                if (is_obj_destroyed(*bullet_head ,*obj_head, hit_area_init, hit_area_end)) {
+                    *obj_head = (*obj_head)->next;
+                    free(obj_temp);
+                }
+
+                *bullet_head = (*bullet_head)->next;
+                free(bullet_temp);
+                break;
+            }
+        }
+
+        while (objects != NULL && objects->next != NULL && *bullet_head != NULL) {
+            int flag = 1;
+
+            for (int i = 0; objects->next->sprite[i] != '\0'; i++) {
+                if ((*bullet_head)->pos.y == objects->next->pos.y && (*bullet_head)->pos.x == objects->next->pos.x + i) {
+                    if (is_obj_destroyed(*bullet_head ,objects->next, hit_area_init,  hit_area_end)) {
+                        obj_temp = objects->next;
+                        objects->next = objects->next->next;
+                        free(obj_temp);
+                        flag = 0;
+                    }
+
+                    bullet_temp = *bullet_head;
+                    *bullet_head = (*bullet_head)->next;
+                    free(bullet_temp);
+                    break;
+                }
+            }
+            if (flag) {
+                objects = objects->next;
+            }
+        }
+    }
 }
 
 void drawPlayer(char (*ps) [PLAYER_WIDTH] ,player ship) {
@@ -112,6 +166,7 @@ void drawPlayer(char (*ps) [PLAYER_WIDTH] ,player ship) {
 
 void draw_bullets(particle *head) {
     particle *iterate_bullets = head;
+
     while (iterate_bullets != NULL) {
         screenGotoxy((iterate_bullets->pos).x, (iterate_bullets->pos).y);
         printf("%c", iterate_bullets->img);
@@ -176,11 +231,12 @@ int len_bullets(particle *head) {
     return count;
 }
 
-void add_object(object **head, int x, int y, int life, char *sprite) {
+void add_object(object **head, int x, int y, int life, int is_destructible, char *sprite) {
     object *iterate_object = *head, *new_object = (object *) malloc(sizeof(object));
     (new_object->pos).x = x;
     (new_object->pos).y = y;
     new_object->life = life;
+    new_object->is_destructible = is_destructible;
     new_object->sprite = (char *) malloc(sizeof(char) * strlen(sprite));
     strcpy(new_object->sprite, sprite);
     new_object->next = NULL;
@@ -225,7 +281,9 @@ int main() {
     srand(time(0));
     player ship = {85,18,0,'>',NULL} ;
     particle *ship_bullets = NULL;
-    object *asteroid = NULL;
+    object *enemy = NULL;
+    int enemy_x = create_random_Xposition(MINX, MAXX, 9);
+    add_object(&enemy, enemy_x, 4, 2, 1,  object_sprite2);
     clock_t spawn_clock = clock(), move_clock = clock();
 
     int run = 1;
@@ -259,19 +317,20 @@ int main() {
         system("clear");
         draw_border();
 
-        if (delay_object(3.0, &spawn_clock)) {
-            int asteroid_x = create_random_Xposition(MINX, MAXX, 9);
-            add_object(&asteroid, asteroid_x, -2, 2, object_sprite2);
-        }
+        /*if (delay_object(3.0, &spawn_clock)) {
+            int enemy_x = create_random_Xposition(MINX, MAXX, 9);
+            add_object(&enemy, enemy_x, -2, 2, object_sprite2);
+        }*/
 
         if (delay_object(1.0, &move_clock)) {
-            move_object(asteroid);
+            move_object(enemy);
         }
 
-        run = check_collision(ship, asteroid);
+        run = check_collision(ship, enemy);
+        handle_collision_object_bullet(&enemy, &ship_bullets, 3, 4);
         move_bullets(ship_bullets);
         remove_bullets(&ship_bullets);
-        draw_object(asteroid);
+        draw_object(enemy);
         drawPlayer(player_sprite, ship);
         draw_bullets(ship_bullets);
 
