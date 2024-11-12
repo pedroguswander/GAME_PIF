@@ -19,6 +19,11 @@
 #define PLAYER_HEIGHT 3
 #define PLAYER_WIDTH 3
 
+typedef struct {
+    char nome[50];
+    int score;
+} Jogador;
+
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
     {'/', '|', '\\'},
@@ -326,6 +331,39 @@ void move_object(object **head, int player_y) {
         }
     }
 }
+void salvar(const char *nome, int score) {
+    FILE *arquivo;
+    Jogador jogadores[100];
+    int n = 0;
+
+    arquivo = fopen("hall.txt", "r");
+        while (fscanf(arquivo, "%20s %d", jogadores[n].nome, &jogadores[n].score) == 2) {
+            n++;
+        }
+        fclose(arquivo);
+
+
+    Jogador novo;
+    strcpy(novo.nome, nome);
+    novo.score = score;
+
+    jogadores[n++] = novo;
+
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (jogadores[i].score < jogadores[j].score) {
+                Jogador temp = jogadores[i];
+                jogadores[i] = jogadores[j];
+                jogadores[j] = temp;
+            }
+        }
+    }
+    arquivo = fopen("hall.txt", "w");
+    for (int i = 0; i < n; i++) {
+        fprintf(arquivo, "%s %d\n", jogadores[i].nome, jogadores[i].score);
+    }
+    fclose(arquivo);
+}
 
 void move(player *ship) {
     ship->x += PLAYER_VEL * ship->direction;
@@ -335,6 +373,16 @@ int main() {
     screenInit(1);
     keyboardInit();
     srand(time(0));
+
+    char nome[21];
+    printf("nome: ");
+    scanf("%20s", nome);
+    int score;
+    printf("score: ");
+    scanf("%d", &score);
+    salvar(nome, score); 
+
+
     player ship = {85,18,0,'>',NULL} ;
     particle *ship_bullets = NULL;
     object *enemy = NULL;
