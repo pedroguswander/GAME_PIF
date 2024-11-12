@@ -66,19 +66,45 @@ typedef struct particle {
 
 void draw_border() {
 
-    for (int x = MINX; x <= MAXX; x++) {
-        screenGotoxy(x, MINY);
-        printf("-");
-        screenGotoxy(x, MAXY);
-        printf("-");
+{
+    char hbc = BOX_HLINE;
+    char vbc = BOX_VLINE;
+    
+    screenClear();
+    screenBoxEnable();
+    
+    screenGotoxy(MINX, MINY);
+    printf("%c", BOX_UPLEFT);
+
+    for (int i=MINX+1; i<MAXX; i++)
+    {
+        screenGotoxy(i, MINY);
+        printf("%c", hbc);
+    }
+    screenGotoxy(MAXX, MINY);
+    printf("%c", BOX_UPRIGHT);
+
+    for (int i=MINY+1; i<MAXY; i++)
+    {
+        screenGotoxy(MINX, i);
+        printf("%c", vbc);
+        screenGotoxy(MAXX, i);
+        printf("%c", vbc);
     }
 
-    for (int y = MINY; y <= MAXY; y++) {
-        screenGotoxy(MINX, y);
-        printf("|");
-        screenGotoxy(MAXX, y);
-        printf("|");
+    screenGotoxy(MINX, MAXY);
+    printf("%c", BOX_DWNLEFT);
+    for (int i=MINX+1; i<MAXX; i++)
+    {
+        screenGotoxy(i, MAXY);
+        printf("%c", hbc);
     }
+    screenGotoxy(MAXX, MAXY);
+    printf("%c", BOX_DWNRIGHT);
+
+    screenBoxDisable();
+    
+}
 }
 
 int delay_object(double delay_time, clock_t *last_t) {
