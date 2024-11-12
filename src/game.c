@@ -24,10 +24,10 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {'/', '|', '\\'},
     {'<', '-', '>'}
 };
-char object_sprite1[] = "===^^^===";
+//char object_sprite1[] = "===^^^===";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "===-----===";
-char object_sprite4[] = "===**===";
+//char object_sprite4[] = "===**===";
 char object_sprite5[] = "=======";
 
 typedef struct position {
@@ -48,6 +48,8 @@ typedef struct object {
     int life;
     char *sprite;
     int is_destructible;
+    int hit_area_init;
+    int hit_area_end;
     struct object *next;
 } object;
 
@@ -102,23 +104,23 @@ int check_collision(player ship, object *objects) {
     return 1;
 }
 
-int is_obj_destroyed(particle *bullet, object *obj, int hit_area_init, int hit_area_end) {
+int is_obj_destroyed(particle *bullet, object *obj) {
     if (obj->is_destructible) {
-        if ((bullet->pos.x >= obj->pos.x + hit_area_init) && (bullet->pos.x <= obj->pos.x + hit_area_end)) {
+        if ((bullet->pos.x >= obj->pos.x + obj->hit_area_init) && (bullet->pos.x <= obj->pos.x + obj->hit_area_end)) {
             return 1;
         }
     }
     return 0;
 }
 
-void handle_collision_object_bullet(object **obj_head, particle **bullet_head, int hit_area_init, int hit_area_end) {
+void handle_collision_object_bullet(object **obj_head, particle **bullet_head) {
     object *objects = *obj_head, *obj_temp = *obj_head;
     particle *bullets = *bullet_head, *bullet_temp = *bullet_head;
 
     if (objects != NULL && bullets != NULL) {
         for (int i = 0; (*obj_head)->sprite[i] != '\0'; i++) {
             if (((*bullet_head)->pos.y == (*obj_head)->pos.y) && ((*bullet_head)->pos.x == (*obj_head)->pos.x + i)) {
-                if (is_obj_destroyed(*bullet_head ,*obj_head, hit_area_init, hit_area_end)) {
+                if (is_obj_destroyed(*bullet_head ,*obj_head)) {
                     *obj_head = (*obj_head)->next;
                     free(obj_temp);
                 }
@@ -134,7 +136,7 @@ void handle_collision_object_bullet(object **obj_head, particle **bullet_head, i
 
             for (int i = 0; objects->next->sprite[i] != '\0'; i++) {
                 if ((*bullet_head)->pos.y == objects->next->pos.y && (*bullet_head)->pos.x == objects->next->pos.x + i) {
-                    if (is_obj_destroyed(*bullet_head ,objects->next, hit_area_init,  hit_area_end)) {
+                    if (is_obj_destroyed(*bullet_head ,objects->next)) {
                         obj_temp = objects->next;
                         objects->next = objects->next->next;
                         free(obj_temp);
@@ -231,15 +233,48 @@ int len_bullets(particle *head) {
     return count;
 }
 
-void add_object(object **head, int x, int y, int life, int is_destructible, char *sprite) {
+char *choose_enemy_sprite() {
+    unsigned int seed = time(0);
+    int sprite_choice = rand_r(&seed) % 3 + 1;
+
+    switch (sprite_choice) {
+        case 1:
+            return object_sprite2;
+        case 2:
+            return object_sprite3;
+        case 3:
+            return object_sprite5;
+        default:
+            return object_sprite2;
+    }
+}
+
+int define_enemy_type(object *enemy) {
+    if (strcmp(enemy->sprite, object_sprite2) == 0) {
+        enemy->hit_area_init = 3;
+        enemy->hit_area_end = 4;
+        return 1;
+    }
+    if (strcmp(enemy->sprite, object_sprite3) == 0) {
+        enemy->hit_area_init = 3;
+        enemy->hit_area_end = 7;
+        return 1;
+    }
+
+    enemy->hit_area_init = 0;
+    enemy->hit_area_end = 0;
+    return 0;
+}
+
+void add_object(object **head, int x, int y, int life, char *sprite) {
     object *iterate_object = *head, *new_object = (object *) malloc(sizeof(object));
-    (new_object->pos).x = x;
-    (new_object->pos).y = y;
-    new_object->life = life;
-    new_object->is_destructible = is_destructible;
     new_object->sprite = (char *) malloc(sizeof(char) * strlen(sprite));
     strcpy(new_object->sprite, sprite);
+    new_object->is_destructible = define_enemy_type(new_object);
+    (new_object->pos).x = x;
+    (new_object->pos).y = y;
     new_object->next = NULL;
+
     if (*head == NULL) {
         *head = new_object;
     }
@@ -262,9 +297,11 @@ void draw_object(object *head) {
         iterate_object = iterate_object->next;
     }
 }
+
 void spawn_enemy(object **head) {
-    int enemy_x = create_random_Xposition(MINX, MAXX, 9);
-    add_object(head, enemy_x, 4, 2, 1, object_sprite2);
+    char *enemy_sprite = choose_enemy_sprite();
+    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+    add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
 
 void move_object(object **head, int player_y) {
@@ -301,8 +338,9 @@ int main() {
     player ship = {85,18,0,'>',NULL} ;
     particle *ship_bullets = NULL;
     object *enemy = NULL;
-    int enemy_x = create_random_Xposition(MINX, MAXX, 9);
-    add_object(&enemy, enemy_x, 4, 2, 1,  object_sprite2);
+    char *enemy_sprite = choose_enemy_sprite();
+    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+    add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
     clock_t spawn_clock = clock(), move_clock = clock();
 
     int run = 1;
@@ -336,17 +374,15 @@ int main() {
         system("clear");
         draw_border();
 
-
         if (delay_object(0.002, &move_clock)) {
             move_object(&enemy, ship.y);
             if (delay_object(0.02, &spawn_clock)) {
-            spawn_enemy(&enemy);
+                spawn_enemy(&enemy);
+            }
         }
-        }
-
 
         run = check_collision(ship, enemy);
-        handle_collision_object_bullet(&enemy, &ship_bullets, 3, 4);
+        handle_collision_object_bullet(&enemy, &ship_bullets);
         move_bullets(ship_bullets);
         remove_bullets(&ship_bullets);
         draw_object(enemy);
