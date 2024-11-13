@@ -1,2 +1,9 @@
-o 400
-oi 66
+tomas 850
+lucas 700
+cloud 310
+haikyuu 230
+sergio 180
+pedro 160
+jonas 60
+jeff 40
+rreef 0

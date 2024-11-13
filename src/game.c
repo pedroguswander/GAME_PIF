@@ -24,6 +24,8 @@ typedef struct {
     int score;
 } Jogador;
 
+int score = 0;
+
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
     {'/', '|', '\\'},
@@ -154,6 +156,7 @@ void handle_collision_object_bullet(object **obj_head, particle **bullet_head) {
                 if (is_obj_destroyed(*bullet_head ,*obj_head)) {
                     *obj_head = (*obj_head)->next;
                     free(obj_temp);
+                    score += 100;
                 }
 
                 *bullet_head = (*bullet_head)->next;
@@ -171,6 +174,7 @@ void handle_collision_object_bullet(object **obj_head, particle **bullet_head) {
                         obj_temp = objects->next;
                         objects->next = objects->next->next;
                         free(obj_temp);
+                        score += 100;
                         flag = 0;
                     }
 
@@ -403,11 +407,6 @@ int main() {
     char nome[21];
     printf("nome: ");
     scanf("%20s", nome);
-    int score;
-    printf("score: ");
-    scanf("%d", &score);
-    salvar(nome, score); 
-
 
     player ship = {85,18,0,'>',NULL} ;
     particle *ship_bullets = NULL;
@@ -415,7 +414,7 @@ int main() {
     char *enemy_sprite = choose_enemy_sprite();
     int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
     add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-    clock_t spawn_clock = clock(), move_clock = clock();
+    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock();
 
     int run = 1;
     
@@ -448,6 +447,10 @@ int main() {
         system("clear");
         draw_border();
 
+        if (delay_object(0.01, &score_clock)) {
+            score += 10;
+        }
+
         if (delay_object(0.002, &move_clock)) {
             move_object(&enemy, ship.y);
             if (delay_object(0.02, &spawn_clock)) {
@@ -462,12 +465,14 @@ int main() {
         draw_object(enemy);
         drawPlayer(player_sprite, ship);
         draw_bullets(ship_bullets);
+        screenGotoxy(MAXX + 5, MINY + 1);
+        printf("SCORE %d", score);
 
         screenUpdate();
         usleep(33333);
     }
 
-
+    salvar(nome, score);
     screenHomeCursor();
     printf("Você Perdeu");
     usleep(100000);
