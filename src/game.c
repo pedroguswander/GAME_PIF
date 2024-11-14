@@ -69,7 +69,7 @@ typedef struct particle {
 
 
 
-int delay_object(double delay_time, clock_t *last_t) {
+int delay_to_action(double delay_time, clock_t *last_t) {
     clock_t current_t = clock();
     if ((double) (current_t - *last_t) / CLOCKS_PER_SEC >= delay_time) {
         *last_t = current_t;
@@ -370,6 +370,18 @@ void salvar(const char *nome, int score) {
     fclose(arquivo);
 }
 
+void draw_game_information(int score, particle *bullets) {
+    screenGotoxy(MAXX + 5, MINY + 1);
+    printf("SCORE %d", score);
+
+    int bullets_to_shoot = len_bullets(bullets);
+    screenGotoxy(MAXX + 5, MINY + 4);
+
+    if (bullets_to_shoot == 2) printf(" ");
+    else if (bullets_to_shoot == 1) printf("| ");
+    else if (bullets_to_shoot == 0) printf("| |");
+}
+
 void move(player *ship) {
     ship->x += PLAYER_VEL * ship->direction;
 }
@@ -391,7 +403,7 @@ int main() {
     char *enemy_sprite = choose_enemy_sprite();
     int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
     add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock();
+    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock();
 
     int run = 1;
     
@@ -411,7 +423,7 @@ int main() {
                     }
                 break;
                 case ' ':
-                    if (len_bullets(ship_bullets) < 5) {
+                    if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock)) {
                         add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
                     }
                     break;
@@ -424,13 +436,13 @@ int main() {
         system("clear");
         draw_border();
 
-        if (delay_object(0.01, &score_clock)) {
+        if (delay_to_action(0.01, &score_clock)) {
             score += 10;
         }
 
-        if (delay_object(0.002, &move_clock)) {
+        if (delay_to_action(0.002, &move_clock)) {
             move_object(&enemy, ship.y);
-            if (delay_object(0.02, &spawn_clock)) {
+            if (delay_to_action(0.02, &spawn_clock)) {
                 spawn_enemy(&enemy);
             }
         }
@@ -442,8 +454,7 @@ int main() {
         draw_object(enemy);
         drawPlayer(player_sprite, ship);
         draw_bullets(ship_bullets);
-        screenGotoxy(MAXX + 5, MINY + 1);
-        printf("SCORE %d", score);
+        draw_game_information(score, ship_bullets);
 
         screenUpdate();
         usleep(33333);
