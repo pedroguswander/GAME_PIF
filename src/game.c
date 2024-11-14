@@ -169,6 +169,8 @@ void handle_collision_object_bullet(object **objects, particle **bullets) {
                         } else {
                             prev_object->next = curr_object->next;
                         }
+
+                        score += 100;
                         free(curr_object->sprite);
                         free(curr_object);
 
