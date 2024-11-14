@@ -146,47 +146,54 @@ int is_obj_destroyed(particle *bullet, object *obj) {
     return 0;
 }
 
-void handle_collision_object_bullet(object **obj_head, particle **bullet_head) {
-    object *objects = *obj_head, *obj_temp = *obj_head;
-    particle *bullets = *bullet_head, *bullet_temp = *bullet_head;
+void handle_collision_object_bullet(object **objects, particle **bullets) {
+    object *curr_object = *objects, *prev_object = NULL;
+    particle *curr_bullet = *bullets, *prev_bullet = NULL;
 
-    if (objects != NULL && bullets != NULL) {
-        for (int i = 0; (*obj_head)->sprite[i] != '\0'; i++) {
-            if (((*bullet_head)->pos.y == (*obj_head)->pos.y) && ((*bullet_head)->pos.x == (*obj_head)->pos.x + i)) {
-                if (is_obj_destroyed(*bullet_head ,*obj_head)) {
-                    *obj_head = (*obj_head)->next;
-                    free(obj_temp);
-                    score += 100;
+    while (curr_bullet != NULL) {
+        int bullet_destroyed = 0;
+        curr_object = *objects;
+        prev_object = NULL;
+
+        while (curr_object != NULL) {
+            if (curr_bullet->pos.y == curr_object->pos.y) {
+                int relative_x = curr_bullet->pos.x - curr_object->pos.x;
+                if (relative_x >= 0 && relative_x < strlen(curr_object->sprite)) {
+                    char hit_char = curr_object->sprite[relative_x];
+ 
+
+                    if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') || (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-')) {
+                        
+                        if (prev_object == NULL) {
+                            *objects = curr_object->next;
+                        } else {
+                            prev_object->next = curr_object->next;
+                        }
+                        free(curr_object->sprite);
+                        free(curr_object);
+
+                        bullet_destroyed = 1;
+                        break;
+                    }
                 }
-
-                *bullet_head = (*bullet_head)->next;
-                free(bullet_temp);
-                break;
             }
+
+            prev_object = curr_object;
+            curr_object = curr_object->next;
         }
 
-        while (objects != NULL && objects->next != NULL && *bullet_head != NULL) {
-            int flag = 1;
-
-            for (int i = 0; objects->next->sprite[i] != '\0'; i++) {
-                if ((*bullet_head)->pos.y == objects->next->pos.y && (*bullet_head)->pos.x == objects->next->pos.x + i) {
-                    if (is_obj_destroyed(*bullet_head ,objects->next)) {
-                        obj_temp = objects->next;
-                        objects->next = objects->next->next;
-                        free(obj_temp);
-                        score += 100;
-                        flag = 0;
-                    }
-
-                    bullet_temp = *bullet_head;
-                    *bullet_head = (*bullet_head)->next;
-                    free(bullet_temp);
-                    break;
-                }
+        if (bullet_destroyed) {
+            if (prev_bullet == NULL) {
+                *bullets = curr_bullet->next;
+            } else {
+                prev_bullet->next = curr_bullet->next;
             }
-            if (flag) {
-                objects = objects->next;
-            }
+            particle *temp_bullet = curr_bullet;
+            curr_bullet = curr_bullet->next;
+            free(temp_bullet);
+        } else {
+            prev_bullet = curr_bullet;
+            curr_bullet = curr_bullet->next;
         }
     }
 }
