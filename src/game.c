@@ -405,7 +405,11 @@ int main() {
     srand(time(0));
 
     char nome[21];
-    printf("nome: ");
+    draw_border();
+    int center_x = (MINX + MAXX) / 2 - 3;
+    int center_y = MINY + 6;
+    screenGotoxy(center_x, center_y);
+    printf("Nome: ");
     scanf("%20s", nome);
 
     player ship = {85,18,0,'>',NULL} ;
