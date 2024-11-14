@@ -8,10 +8,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include <string.h>
 #include "screen.h"
 #include "keyboard.h"
 #include "timer.h"
+#include "start_screen.h"
+#include "ui_utils.h"
 
 #define PLAYER_VEL  1
 #define BULLET_VEL 1
@@ -66,48 +67,7 @@ typedef struct particle {
     struct particle *next;
 } particle;
 
-void draw_border() {
 
-{
-    char hbc = BOX_HLINE;
-    char vbc = BOX_VLINE;
-    
-    screenClear();
-    screenBoxEnable();
-    
-    screenGotoxy(MINX, MINY);
-    printf("%c", BOX_UPLEFT);
-
-    for (int i=MINX+1; i<MAXX; i++)
-    {
-        screenGotoxy(i, MINY);
-        printf("%c", hbc);
-    }
-    screenGotoxy(MAXX, MINY);
-    printf("%c", BOX_UPRIGHT);
-
-    for (int i=MINY+1; i<MAXY; i++)
-    {
-        screenGotoxy(MINX, i);
-        printf("%c", vbc);
-        screenGotoxy(MAXX, i);
-        printf("%c", vbc);
-    }
-
-    screenGotoxy(MINX, MAXY);
-    printf("%c", BOX_DWNLEFT);
-    for (int i=MINX+1; i<MAXX; i++)
-    {
-        screenGotoxy(i, MAXY);
-        printf("%c", hbc);
-    }
-    screenGotoxy(MAXX, MAXY);
-    printf("%c", BOX_DWNRIGHT);
-
-    screenBoxDisable();
-    
-}
-}
 
 int delay_object(double delay_time, clock_t *last_t) {
     clock_t current_t = clock();
@@ -160,9 +120,9 @@ void handle_collision_object_bullet(object **objects, particle **bullets) {
                 int relative_x = curr_bullet->pos.x - curr_object->pos.x;
                 if (relative_x >= 0 && relative_x < strlen(curr_object->sprite)) {
                     char hit_char = curr_object->sprite[relative_x];
- 
 
-                    if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') || (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-')) {
+                    if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') || 
+                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-')) {
                         
                         if (prev_object == NULL) {
                             *objects = curr_object->next;
@@ -172,6 +132,11 @@ void handle_collision_object_bullet(object **objects, particle **bullets) {
                         free(curr_object->sprite);
                         free(curr_object);
 
+                        bullet_destroyed = 1;
+                        break;
+                    }
+
+                    if (hit_char == '=') {
                         bullet_destroyed = 1;
                         break;
                     }
@@ -197,6 +162,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets) {
         }
     }
 }
+
 
 void drawPlayer(char (*ps) [PLAYER_WIDTH] ,player ship) {
     for (int i = 0; i < PLAYER_HEIGHT; i++) {
@@ -409,11 +375,13 @@ void move(player *ship) {
 int main() {
     screenInit(1);
     keyboardInit();
+    start_screen();
     srand(time(0));
 
-    char nome[21];
-    printf("nome: ");
-    scanf("%20s", nome);
+
+    // char nome[21];
+    // printf("nome: ");
+    // scanf("%20s", nome);
 
     player ship = {85,18,0,'>',NULL} ;
     particle *ship_bullets = NULL;
@@ -428,24 +396,24 @@ int main() {
     while(run) {
         if (keyhit()) {
             switch (readch()) {
-                case 97:
+                case 'a':
                     if (ship.x > MINX + 1) {
                         ship.direction = -1;
                         move(&ship);
                     }
                 break;
-                case 100:
+                case 'd':
                     if (ship.x < (MAXX - PLAYER_WIDTH - 1)) {
                         ship.direction = 1;
                         move(&ship);
                     }
                 break;
-                case 120:
+                case ' ':
                     if (len_bullets(ship_bullets) < 5) {
-                        add_bullet(&ship_bullets, ship.x, ship.y-1, '|');
+                        add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
                     }
                     break;
-                case 32:
+                case 'x':
                     run = 0;
                     break;
                 default:
@@ -479,7 +447,7 @@ int main() {
         usleep(33333);
     }
 
-    salvar(nome, score);
+    // salvar(nome, score);
     screenHomeCursor();
     printf("Você Perdeu");
     usleep(100000);
