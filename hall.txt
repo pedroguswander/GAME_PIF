@@ -1,11 +1,3 @@
-oi 1220
-tomas 850
-lucas 700
-cloud 310
-haikyuu 230
-sergio 180
-pedro 160
-jonas 60
-OI 40
-jeff 40
-rreef 0
+FEF 100
+FAF 50
+AAA 10

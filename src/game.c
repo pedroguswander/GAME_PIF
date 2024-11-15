@@ -1,8 +1,3 @@
-/*
-// Created by Pedro Gusmão on 26/10/2024.
-//
-*/
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -14,17 +9,17 @@
 
 #define PLAYER_VEL 1
 #define BULLET_VEL 1
-#define OBJECT_VEL 1
+#define OBJECT_VEL 3
 #define PLAYER_HEIGHT 3
 #define PLAYER_WIDTH 3
-
-typedef struct
-{
-    char nome[50];
-    int score;
-} Jogador;
+#define TRUE 1
 
 int score = 0;
+typedef struct
+{
+    char name[50];
+    int score;
+} player_score;
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
@@ -367,7 +362,7 @@ void draw_object(object *head)
 void spawn_enemy(object **head)
 {
     char *enemy_sprite = choose_enemy_sprite();
-    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+    int enemy_x = create_random_Xposition(MINX + 1, MAXX, strlen(enemy_sprite));
     add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
 
@@ -402,43 +397,47 @@ void move_object(object **head, int player_y)
         }
     }
 }
-void salvar(const char *nome, int score)
+
+void save_score(const char *name, int score)
 {
-    FILE *arquivo;
-    Jogador jogadores[100];
+    FILE *file;
+    player_score players[100];
     int n = 0;
 
-    arquivo = fopen("hall.txt", "r");
-    while (fscanf(arquivo, "%20s %d", jogadores[n].nome, &jogadores[n].score) == 2)
+    file = fopen("hall.txt", "r");
+    while (fscanf(file, "%20s %d", players[n].name, &players[n].score) == 2)
     {
         n++;
     }
-    fclose(arquivo);
+    fclose(file);
 
-    Jogador novo;
-    strcpy(novo.nome, nome);
-    novo.score = score;
+    player_score new_player;
+    strcpy(new_player.name, name);
+    new_player.score = score;
 
-    jogadores[n++] = novo;
+    players[n++] = new_player;
 
+    // Ordena os jogadores pela pontuação
     for (int i = 0; i < n - 1; i++)
     {
         for (int j = i + 1; j < n; j++)
         {
-            if (jogadores[i].score < jogadores[j].score)
+            if (players[i].score < players[j].score)
             {
-                Jogador temp = jogadores[i];
-                jogadores[i] = jogadores[j];
-                jogadores[j] = temp;
+                player_score temp = players[i];
+                players[i] = players[j];
+                players[j] = temp;
             }
         }
     }
-    arquivo = fopen("hall.txt", "w");
+
+    // Salva os jogadores no arquivo
+    file = fopen("hall.txt", "w");
     for (int i = 0; i < n; i++)
     {
-        fprintf(arquivo, "%s %d\n", jogadores[i].nome, jogadores[i].score);
+        fprintf(file, "%s %d\n", players[i].name, players[i].score);
     }
-    fclose(arquivo);
+    fclose(file);
 }
 
 void draw_game_information(int score, particle *bullets)
@@ -466,89 +465,91 @@ int main()
 {
     screenInit(1);
     keyboardInit();
-    start_screen();
-    srand(time(0));
+    char name[4] = {0};
 
-    // char nome[21];
-    // printf("nome: ");
-    // scanf("%20s", nome);
-
-    player ship = {85, 18, 0, '>', NULL};
-    particle *ship_bullets = NULL;
-    object *enemy = NULL;
-    char *enemy_sprite = choose_enemy_sprite();
-    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
-    add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock();
-
-    int run = 1;
-
-    while (run)
+    while (TRUE)
     {
-        if (keyhit())
+        start_screen();
+        srand(time(0));
+
+        player ship = {85, 18, 0, '>', NULL};
+        particle *ship_bullets = NULL;
+        object *enemy = NULL;
+        char *enemy_sprite = choose_enemy_sprite();
+        int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+        add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
+        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock();
+
+        while (TRUE)
         {
-            switch (readch())
+            if (keyhit())
             {
-            case 'a':
-                if (ship.x > MINX + 1)
+                switch (readch())
                 {
-                    ship.direction = -1;
-                    move(&ship);
+                case 'a':
+                    if (ship.x > MINX + 1)
+                    {
+                        ship.direction = -1;
+                        move(&ship);
+                    }
+                    break;
+                case 'd':
+                    if (ship.x < (MAXX - PLAYER_WIDTH - 1))
+                    {
+                        ship.direction = 1;
+                        move(&ship);
+                    }
+                    break;
+                case ' ':
+                    if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
+                    {
+                        add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
+                    }
+                    break;
+                default:
+                    break;
                 }
-                break;
-            case 'd':
-                if (ship.x < (MAXX - PLAYER_WIDTH - 1))
+            }
+
+            system("clear");
+            draw_border();
+
+            if (delay_to_action(0.01, &score_clock))
+            {
+                score += 10;
+            }
+
+            if (delay_to_action(0.002, &move_clock))
+            {
+                move_object(&enemy, ship.y);
+                if (delay_to_action(0.02, &spawn_clock))
                 {
-                    ship.direction = 1;
-                    move(&ship);
+                    spawn_enemy(&enemy);
                 }
-                break;
-            case ' ':
-                if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
-                {
-                    add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
-                }
-                break;
-            case 'x':
-                run = 0;
-                break;
-            default:
+            }
+
+            // Condicional de fim de jogo, nave colidir com objeto
+            if (check_collision(ship, enemy) == 0)
+            {
+                game_over_screen(score, name);
+                save_score(name, score);
                 break;
             }
+
+            handle_collision_object_bullet(&enemy, &ship_bullets);
+            move_bullets(ship_bullets);
+            remove_bullets(&ship_bullets);
+            draw_object(enemy);
+            drawPlayer(player_sprite, ship);
+            draw_bullets(ship_bullets);
+            draw_game_information(score, ship_bullets);
+
+            screenUpdate();
+            usleep(33333);
         }
-        system("clear");
-        draw_border();
-
-        if (delay_to_action(0.01, &score_clock))
-        {
-            score += 10;
-        }
-
-        if (delay_to_action(0.002, &move_clock))
-        {
-            move_object(&enemy, ship.y);
-            if (delay_to_action(0.02, &spawn_clock))
-            {
-                spawn_enemy(&enemy);
-            }
-        }
-
-        run = check_collision(ship, enemy);
-        handle_collision_object_bullet(&enemy, &ship_bullets);
-        move_bullets(ship_bullets);
-        remove_bullets(&ship_bullets);
-        draw_object(enemy);
-        drawPlayer(player_sprite, ship);
-        draw_bullets(ship_bullets);
-        draw_game_information(score, ship_bullets);
-
-        screenUpdate();
-        usleep(33333);
     }
 
-    // salvar(nome, score);
     screenHomeCursor();
-    printf("Você Perdeu");
     usleep(100000);
     keyboardDestroy();
     screenDestroy();

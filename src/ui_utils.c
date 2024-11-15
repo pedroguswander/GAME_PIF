@@ -3,38 +3,42 @@
 #include "keyboard.h"
 #include <string.h>
 
-int opcao = 1;
+int start_screen_option = 1;
 
+// Printa o título/nome do jogo
 void draw_title()
 {
-    int titulo_y = MINY + 2;
+    int title_y = MINY + 2;
     // Exibir título do jogo
     screenSetColor(YELLOW, BLACK);
-    screenGotoxy((MAXX + MINX) / 2 - 7, titulo_y);
+    screenGotoxy((MAXX + MINX) / 2 - 7, title_y);
     printf("================");
-    screenGotoxy((MAXX + MINX) / 2 - 4, titulo_y + 1);
+    screenGotoxy((MAXX + MINX) / 2 - 4, title_y + 1);
     printf("Void Runner");
-    screenGotoxy((MAXX + MINX) / 2 - 7, titulo_y + 2);
+    screenGotoxy((MAXX + MINX) / 2 - 7, title_y + 2);
     printf("================");
 }
 
+// Printa as opções do menu do inicio do jogo
 void draw_menu_options()
 {
-    int primeira_opcao_y = MINY + 6;
+    int first_option_y = MINY + 6;
+    int options_margin_x = (MAXX + MINX) / 2 - 8;
 
     // Opções do menu
-    screenGotoxy((MAXX + MINX) / 2 - 4, primeira_opcao_y);
-    printf("%s [ JOGAR ]", opcao == 1 ? "->" : "  ");
-    screenGotoxy((MAXX + MINX) / 2 - 10, primeira_opcao_y + 2);
-    printf("%s [ INSTRUÇÕES ]", opcao == 2 ? "->" : "  ");
-    screenGotoxy((MAXX + MINX) / 2 - 8, primeira_opcao_y + 4);
-    printf("%s [ SCORES ]", opcao == 3 ? "->" : "  ");
-    screenGotoxy((MAXX + MINX) / 2 - 8, primeira_opcao_y + 6);
-    printf("%s [ CRÉDITOS ]", opcao == 4 ? "->" : "  ");
-    screenGotoxy((MAXX + MINX) / 2 - 8, primeira_opcao_y + 8);
-    printf("%s [ SAIR ]", opcao == 5 ? "->" : "  ");
+    screenGotoxy(options_margin_x, first_option_y);
+    printf("%s [ JOGAR ]", start_screen_option == 1 ? "->" : "  ");
+    screenGotoxy(options_margin_x, first_option_y + 2);
+    printf("%s [ INSTRUÇÕES ]", start_screen_option == 2 ? "->" : "  ");
+    screenGotoxy(options_margin_x, first_option_y + 4);
+    printf("%s [ SCORES ]", start_screen_option == 3 ? "->" : "  ");
+    screenGotoxy(options_margin_x, first_option_y + 6);
+    printf("%s [ CRÉDITOS ]", start_screen_option == 4 ? "->" : "  ");
+    screenGotoxy(options_margin_x, first_option_y + 8);
+    printf("%s [ SAIR ]", start_screen_option == 5 ? "->" : "  ");
 }
 
+// Printa as bordas limite do jogo
 void draw_border()
 {
     char hbc = BOX_HLINE;
@@ -46,7 +50,7 @@ void draw_border()
     screenGotoxy(MINX, MINY);
     printf("%c", BOX_UPLEFT);
 
-    for (int i = MINX + 1; i < MAXX; i++)
+    for (int i = MINX + 1; i < MAXX; i += 1)
     {
         screenGotoxy(i, MINY);
         printf("%c", hbc);
@@ -54,7 +58,7 @@ void draw_border()
     screenGotoxy(MAXX, MINY);
     printf("%c", BOX_UPRIGHT);
 
-    for (int i = MINY + 1; i < MAXY; i++)
+    for (int i = MINY + 1; i < MAXY; i += 1)
     {
         screenGotoxy(MINX, i);
         printf("%c", vbc);
@@ -64,7 +68,7 @@ void draw_border()
 
     screenGotoxy(MINX, MAXY);
     printf("%c", BOX_DWNLEFT);
-    for (int i = MINX + 1; i < MAXX; i++)
+    for (int i = MINX + 1; i < MAXX; i += 1)
     {
         screenGotoxy(i, MAXY);
         printf("%c", hbc);
@@ -75,6 +79,7 @@ void draw_border()
     screenBoxDisable();
 }
 
+// Tela das instruções
 void show_instructions()
 {
     draw_border();
@@ -83,58 +88,60 @@ void show_instructions()
     screenGotoxy((MAXX + MINX) / 2 - 10, MINY + 2);
     printf("===== INSTRUÇÕES =====");
 
-    int startY = MINY + 5;
-    int offsetX = (MAXX + MINX) / 2 - 10;
+    int start_y = MINY + 5;
+    int margin_x = (MAXX + MINX) / 2 - 10;
 
-    screenGotoxy(offsetX, startY);
+    screenGotoxy(margin_x, start_y);
     printf("| A | -> Mover Esq.");
-    screenGotoxy(offsetX, startY + 2);
+    screenGotoxy(margin_x, start_y + 2);
     printf("| D | -> Mover Dir.");
-    screenGotoxy(offsetX, startY + 4);
+    screenGotoxy(margin_x, start_y + 4);
     printf("| Espaço | -> Atirar");
-    screenGotoxy(offsetX, startY + 7);
+    screenGotoxy(margin_x, start_y + 7);
     printf("Dica: Evite colisões!");
-    screenGotoxy(offsetX, startY + 11);
+    screenGotoxy(margin_x, start_y + 11);
     printf("Pressione qualquer");
-    screenGotoxy(offsetX, startY + 12);
+    screenGotoxy(margin_x, start_y + 12);
     printf("tecla para voltar...");
     screenUpdate();
     readch();
     screenClear();
 }
 
+// Tela dos créditos
 void show_credits()
 {
     draw_border();
     screenSetColor(YELLOW, BLACK);
 
-    int startY = MINY + 5;
-    int offsetX = (MAXX + MINX) / 2 - 10;
+    int start_y = MINY + 5;
+    int margin_x = (MAXX + MINX) / 2 - 10;
 
     // Título
     screenGotoxy((MAXX + MINX) / 2 - 10, MINY + 2);
     printf("====== CRÉDITOS ======");
 
     // Créditos
-    screenGotoxy(offsetX, startY);
+    screenGotoxy(margin_x, start_y);
     printf("Desenvolvido por:");
-    screenGotoxy(offsetX, startY + 2);
+    screenGotoxy(margin_x, start_y + 2);
     printf("- Felipe Rêgo");
-    screenGotoxy(offsetX, startY + 3);
+    screenGotoxy(margin_x, start_y + 3);
     printf("- Fernando Cavalcanti");
-    screenGotoxy(offsetX, startY + 4);
+    screenGotoxy(margin_x, start_y + 4);
     printf("- Pedro Gusmão");
-    screenGotoxy(offsetX, startY + 8);
-    printf("Muito Obrigado!");
-    screenGotoxy(offsetX, startY + 12);
+    screenGotoxy(margin_x, start_y + 8);
+    printf("Obrigado por jogar!");
+    screenGotoxy(margin_x, start_y + 12);
     printf("Pressione qualquer");
-    screenGotoxy(offsetX, startY + 13);
+    screenGotoxy(margin_x, start_y + 13);
     printf("tecla para voltar...");
     screenUpdate();
     readch();
     screenClear();
 }
 
+// Tela do leaderboard
 void show_scores()
 {
     draw_border();
@@ -145,21 +152,47 @@ void show_scores()
     screenGotoxy((MAXX + MINX) / 2 - 2, MINY + 4);
     printf("Top 05");
 
-    int startY = MINY + 5;
-    int offsetX = (MAXX + MINX) / 2 - 10;
+    int start_y = MINY + 7;
+    int margin_x = (MAXX + MINX) / 2 - 10;
 
-    // Créditos
-    screenGotoxy(offsetX, startY);
-    printf("Top 5");
-    screenGotoxy(offsetX, startY + 12);
+    FILE *file = fopen("hall.txt", "r");
+    if (file == NULL)
+    {
+        screenGotoxy(margin_x, start_y - 1);
+        printf("Erro de armazenamento");
+    }
+    else
+    {
+        char name[4];
+        int score;
+        int count = 0;
+
+        while (fscanf(file, "%3s %d", name, &score) == 2 && count < 5)
+        {
+            screenGotoxy(margin_x, start_y + count * 2);
+            printf("%d. %s - %d", count + 1, name, score);
+            count += 1;
+        }
+
+        fclose(file);
+
+        if (count == 0)
+        {
+            screenGotoxy(margin_x + 2, start_y - 1);
+            printf("Nenhum score salvo");
+        }
+    }
+
+    screenGotoxy(margin_x, start_y + 12);
     printf("Pressione qualquer");
-    screenGotoxy(offsetX, startY + 13);
+    screenGotoxy(margin_x, start_y + 13);
     printf("tecla para voltar...");
     screenUpdate();
     readch();
     screenClear();
 }
 
+// Tela com o menu incial do jogo
 void start_screen()
 {
     int ch = 0;
@@ -178,17 +211,17 @@ void start_screen()
             switch (ch)
             {
             case 'w':
-                opcao -= 1;
-                if (opcao < 1)
-                    opcao = 5;
+                start_screen_option -= 1;
+                if (start_screen_option < 1)
+                    start_screen_option = 5;
                 break;
             case 's':
-                opcao += 1;
-                if (opcao > 5)
-                    opcao = 1;
+                start_screen_option += 1;
+                if (start_screen_option > 5)
+                    start_screen_option = 1;
                 break;
             case '\n':
-                switch (opcao)
+                switch (start_screen_option)
                 {
                 case 1:
                     return;
@@ -215,5 +248,117 @@ void start_screen()
             draw_menu_options();
             screenUpdate();
         }
+    }
+}
+
+// Printa a parte estática da tela de game over
+void draw_game_over_static(int score, int title_y, int margin_x)
+{
+    draw_border();
+    screenSetColor(YELLOW, BLACK);
+
+    screenGotoxy((MAXX + MINX) / 2 - 10, title_y);
+    printf("====== GAME END ======");
+    // Exibir a pontuação final
+    screenGotoxy(margin_x, title_y + 3);
+    printf("SCORE FINAL: %d", score);
+
+    // Instruções para o usuário
+    screenGotoxy(margin_x, title_y + 6);
+    printf("Selecione seu nome:");
+    screenGotoxy(margin_x, title_y + 13);
+    printf("Aperte ENTER em 'END'");
+    screenGotoxy(margin_x, title_y + 14);
+    printf("para continuar...");
+}
+
+// Tela de game over
+void game_over_screen(int score, char *name)
+{
+    int ch;
+    int game_over_option = 0;
+    int title_y = MINY + 2;
+    int margin_x = (MAXX + MINX) / 2 - 10;
+
+    char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+    int letter_index[3] = {0, 0, 0};
+
+    draw_game_over_static(score, title_y, margin_x);
+    screenUpdate();
+
+    while (1)
+    {
+        screenGotoxy(margin_x, title_y + 8);
+        for (int i = 0; i < 4; i += 1)
+        {
+            if (i < 3)
+            {
+                if (i == game_over_option)
+                {
+                    printf("[ %c ]", alphabet[letter_index[i]]);
+                }
+                else
+                {
+                    printf("  %c  ", alphabet[letter_index[i]]);
+                }
+            }
+            else
+            {
+                if (i == game_over_option)
+                {
+                    printf("[ END ]");
+                }
+                else
+                {
+                    printf("  END  ");
+                }
+            }
+        }
+
+        fflush(stdout);
+
+        if (keyhit())
+        {
+            ch = readch();
+
+            switch (ch)
+            {
+            case 'w':
+                if (game_over_option < 3)
+                {
+                    // Assegura que após passar do 27º caractere do alphabet, retorna para 1
+                    letter_index[game_over_option] = (letter_index[game_over_option] + 1) % 27;
+                }
+                break;
+            case 's':
+                if (game_over_option < 3)
+                {
+                    letter_index[game_over_option] = (letter_index[game_over_option] - 1 + 27) % 27;
+                }
+                break;
+
+            case 'a':
+                game_over_option = (game_over_option - 1 + 4) % 4;
+                break;
+            case 'd':
+                game_over_option = (game_over_option + 1) % 4;
+                break;
+            case '\n':
+                if (game_over_option == 3)
+                {
+                    for (int i = 0; i < 3; i += 1)
+                    {
+                        name[i] = alphabet[letter_index[i]];
+                    }
+                    name[3] = '\0';
+                    return;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+
+        screenUpdate();
     }
 }

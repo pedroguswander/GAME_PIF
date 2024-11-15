@@ -5,3 +5,4 @@ void show_instructions();
 void show_credits();
 void show_scores();
 void start_screen();
+void game_over_screen(int score, char *name);
