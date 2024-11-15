@@ -15,6 +15,7 @@
 #define PLAYER_VEL 1
 #define BULLET_VEL 1
 #define OBJECT_VEL 1
+#define COIN_VEL 1
 #define PLAYER_HEIGHT 3
 #define PLAYER_WIDTH 3
 
@@ -69,8 +70,13 @@ typedef struct particle
     struct particle *next;
 } particle;
 
-int delay_to_action(double delay_time, clock_t *last_t)
-{
+typedef struct collectable {
+    position pos;
+    char sprite;
+    struct collectable *next;
+} collectable;
+
+int delay_to_action(double delay_time, clock_t *last_t) {
     clock_t current_t = clock();
     if ((double)(current_t - *last_t) / CLOCKS_PER_SEC >= delay_time)
     {
@@ -402,8 +408,51 @@ void move_object(object **head, int player_y)
         }
     }
 }
-void salvar(const char *nome, int score)
-{
+
+void add_collectables(collectable **coin_head, int x, int y, char sprite) {
+    collectable *iterate_coin = *coin_head, *new_coin = (collectable *) malloc(sizeof(collectable));
+    new_coin->pos.x = x;
+    new_coin->pos.y = y;
+    new_coin->sprite = sprite;
+    new_coin->next = NULL;
+    if (*coin_head == NULL) {
+        *coin_head = new_coin;
+    }
+    else {
+        while (iterate_coin->next != NULL) {
+            iterate_coin = iterate_coin->next;
+        }
+        iterate_coin->next = new_coin;
+    }
+}
+
+void spawn_collectables(collectable **coin) {
+    int coin_x = create_random_Xposition(MINX, MAXX, 1);
+    add_collectables(coin, coin_x, 0, '$');
+}
+
+void draw_collectables(collectable *coin_head) {
+    collectable *iterate_coin = coin_head;
+
+    while (iterate_coin != NULL) {
+        screenGotoxy(iterate_coin->pos.x, iterate_coin->pos.y);
+        screenSetColor(GREEN, BLACK);
+        printf("%c", iterate_coin->sprite);
+        iterate_coin = iterate_coin->next;
+    }
+    screenSetColor(YELLOW, BLACK);
+}
+
+void move_collectables(collectable *coin_head, int vel) {
+    collectable *iterate_coin = coin_head;
+
+    while (iterate_coin != NULL) {
+        iterate_coin->pos.y += vel;
+        iterate_coin = iterate_coin->next;
+    }
+}
+
+void salvar(const char *nome, int score) {
     FILE *arquivo;
     Jogador jogadores[100];
     int n = 0;
@@ -475,11 +524,14 @@ int main()
 
     player ship = {85, 18, 0, '>', NULL};
     particle *ship_bullets = NULL;
+    collectable *coins = NULL;
     object *enemy = NULL;
     char *enemy_sprite = choose_enemy_sprite();
     int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
     add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock();
+
+    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), spawn_coin_clock = clock(),
+    coin_clock = clock(), bullet_clock = clock();
 
     int run = 1;
 
@@ -533,6 +585,13 @@ int main()
             }
         }
 
+        if (delay_to_action(0.003, &coin_clock)) {
+            move_collectables(coins, COIN_VEL);
+            if (delay_to_action(0.03, &spawn_coin_clock)) {
+                spawn_collectables(&coins);
+            }
+        }
+
         run = check_collision(ship, enemy);
         handle_collision_object_bullet(&enemy, &ship_bullets);
         move_bullets(ship_bullets);
@@ -540,6 +599,7 @@ int main()
         draw_object(enemy);
         drawPlayer(player_sprite, ship);
         draw_bullets(ship_bullets);
+        draw_collectables(coins);
         draw_game_information(score, ship_bullets);
 
         screenUpdate();
