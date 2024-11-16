@@ -1,10 +1,24 @@
 # Bem-vindo(a) ao repositório do Space Runner!
 
+
+
 Space Runner é um jogo espacial emocionante onde o jogador assume o controle de uma nave em um ambiente repleto de obstáculos perigosos. O objetivo é destruir o máximo possível de obstáculos e sobreviver pelo maior tempo possível, pontuando tanto pelas destruições quanto pela duração da sobrevivência.
 
 O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a direita ou para a esquerda, enquanto tenta manter a nave intacta. A qualquer momento, uma colisão com um obstáculo fará com que o jogador perca o jogo.
 
----
+# Imagens do Jogo
+
+### Menu Inicial
+
+<details>
+  <summary>Clique para exibir</summary>
+  
+  ![Menu Inicial](imgs/start_screen.png)
+  
+</details>
+
+
+
 
 # Instruções de Compilação
 
