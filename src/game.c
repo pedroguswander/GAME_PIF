@@ -448,7 +448,7 @@ void save_score(const char *name, int score)
     fclose(file);
 }
 
-void draw_game_information(int score, particle *bullets)
+void draw_game_information(int score, particle *bullets, int out_of_bullets)
 {
     screenGotoxy(MAXX + 5, MINY + 1);
     printf("SCORE %d", score);
@@ -456,7 +456,7 @@ void draw_game_information(int score, particle *bullets)
     int bullets_to_shoot = len_bullets(bullets);
     screenGotoxy(MAXX + 5, MINY + 4);
 
-    if (bullets_to_shoot == 2)
+    if (bullets_to_shoot == 2 || out_of_bullets)
         printf(" ");
     else if (bullets_to_shoot == 1)
         printf("| ");
@@ -591,10 +591,14 @@ int main()
         char *enemy_sprite = choose_enemy_sprite();
         int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
         add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(), spawn_coin_clock = clock(), coin_clock = clock();
+        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(),
+        spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
+        int out_of_bullets = 0;
 
         while (TRUE)
         {
+            out_of_bullets = out_of_bullets? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
+
             if (keyhit())
             {
                 switch (readch())
@@ -614,9 +618,12 @@ int main()
                     }
                     break;
                 case ' ':
-                    if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
-                    {
-                        add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
+                    if (!out_of_bullets) {
+                        if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
+                        {
+                            add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
+                        }
+                        out_of_bullets = len_bullets(ship_bullets) == 2? 1 : 0;
                     }
                     break;
                 default:
@@ -667,7 +674,7 @@ int main()
             drawPlayer(player_sprite, ship);
             draw_bullets(ship_bullets);
             draw_collectables(coins);
-            draw_game_information(score, ship_bullets);
+            draw_game_information(score, ship_bullets, out_of_bullets);
 
             screenUpdate();
             usleep(33333);
