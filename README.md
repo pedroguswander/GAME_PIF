@@ -63,7 +63,7 @@ sudo apt install git
 1. Clone o repositório:
 
 ```bash
-git clone https://github.com/pedroguswander/jogo_pif.git
+git clone https://github.com/pedroguswander/GAME_PIF.git
 ```
 
 2. No terminal, acesse a pasta raiz do projeto (GAME_PIF):
