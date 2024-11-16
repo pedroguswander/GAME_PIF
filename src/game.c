@@ -210,13 +210,15 @@ void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship)
 void draw_bullets(particle *head)
 {
     particle *iterate_bullets = head;
-
+    screenSetColor(LIGHTCYAN, BLACK);
     while (iterate_bullets != NULL)
     {
         screenGotoxy((iterate_bullets->pos).x, (iterate_bullets->pos).y);
         printf("%c", iterate_bullets->img);
         iterate_bullets = iterate_bullets->next;
     }
+
+    screenSetColor(YELLOW, BLACK);
 }
 
 void add_bullet(particle **head, int x, int y, char img)
@@ -360,11 +362,20 @@ void draw_object(object *head)
     {
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++)
         {
-            screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
-            printf("%c", iterate_object->sprite[i]);
+            if (iterate_object->sprite[i] == '/' || iterate_object->sprite[i] == '-') {
+                screenSetColor(RED, BLACK);
+                screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
+                printf("%c", iterate_object->sprite[i]);
+            }
+            else {
+                screenSetColor(MAGENTA, BLACK);
+                screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
+                printf("%c", iterate_object->sprite[i]);
+            }
         }
         iterate_object = iterate_object->next;
     }
+    screenSetColor(YELLOW, BLACK);
 }
 
 void spawn_enemy(object **head)
