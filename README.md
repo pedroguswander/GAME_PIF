@@ -19,19 +19,16 @@ O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a d
 
 ### Menus
 
-- **W**: Subir uma opção no menu.
-- **S**: Descer uma opção no menu.
-- **A**: Mover para a opção à esquerda.
-- **D**: Mover para a opção à direita.
+- **W**: Sobe uma opção no menu.
+- **S**: Desce uma opção no menu.
+- **A**: Move para a opção à esquerda.
+- **D**: Move para a opção à direita.
 
 ### Durante o Jogo
 
 - **Barra de espaço**: Atirar.
-- **A**: Mover a nave para a esquerda.
-- **D**: Mover a nave para a direita.
-
-
-
+- **A**: Move a nave para a esquerda.
+- **D**: Move a nave para a direita.
 
 # Instruções de Compilação
 
