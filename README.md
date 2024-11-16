@@ -1,10 +1,37 @@
 # Bem-vindo(a) ao repositório do Space Runner!
 
-Space Runner é um jogo espacial emocionante onde o jogador assume o controle de uma nave em um ambiente repleto de obstáculos perigosos. O objetivo é destruir o máximo possível de obstáculos e sobreviver pelo maior tempo possível, pontuando tanto pelas destruições quanto pela duração da sobrevivência.
+Space Runner é um jogo espacial emocionante, onde o jogador controla uma nave em um ambiente repleto de obstáculos perigosos e itens valiosos. O objetivo é destruir o máximo possível de obstáculos, coletar itens e sobreviver pelo maior tempo possível, acumulando pontos tanto pelas destruições quanto pela quantidade de itens coletados e pelo tempo de sobrevivência.
 
-O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a direita ou para a esquerda, enquanto tenta manter a nave intacta. A qualquer momento, uma colisão com um obstáculo fará com que o jogador perca o jogo.
+O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a direita ou para a esquerda, enquanto tenta manter a nave intacta. A qualquer momento, uma colisão com um obstáculo resultará na perda do jogo.
 
----
+# Imagens do Jogo
+
+### Menu Inicial
+
+<details>
+  <summary>Clique para exibir</summary>
+
+![Menu Inicial](imgs/start_screen.png)
+
+</details>
+
+# Controles
+
+### Menus
+
+- **W**: Subir uma opção no menu.
+- **S**: Descer uma opção no menu.
+- **A**: Mover para a opção à esquerda.
+- **D**: Mover para a opção à direita.
+
+### Durante o Jogo
+
+- **Barra de espaço**: Atirar.
+- **A**: Mover a nave para a esquerda.
+- **D**: Mover a nave para a direita.
+
+
+
 
 # Instruções de Compilação
 
