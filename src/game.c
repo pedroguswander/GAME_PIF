@@ -1,8 +1,3 @@
-/*
-// Created by Pedro Gusmão on 26/10/2024.
-//
-*/
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -14,18 +9,18 @@
 
 #define PLAYER_VEL 1
 #define BULLET_VEL 1
-#define OBJECT_VEL 1
-#define COIN_VEL 1
+#define OBJECT_VEL 2.5
+#define COIN_VEL 2
 #define PLAYER_HEIGHT 3
 #define PLAYER_WIDTH 3
-
-typedef struct
-{
-    char nome[50];
-    int score;
-} Jogador;
+#define TRUE 1
 
 int score = 0;
+typedef struct
+{
+    char name[50];
+    int score;
+} player_score;
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
@@ -33,7 +28,7 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {'<', '-', '>'}};
 // char object_sprite1[] = "===^^^===";
 char object_sprite2[] = "===//===";
-char object_sprite3[] = "===-----===";
+char object_sprite3[] = "====---====";
 // char object_sprite4[] = "===**===";
 char object_sprite5[] = "=======";
 
@@ -70,13 +65,15 @@ typedef struct particle
     struct particle *next;
 } particle;
 
-typedef struct collectable {
+typedef struct collectable
+{
     position pos;
     char *sprite;
     struct collectable *next;
 } collectable;
 
-int delay_to_action(double delay_time, clock_t *last_t) {
+int delay_to_action(double delay_time, clock_t *last_t)
+{
     clock_t current_t = clock();
     if ((double)(current_t - *last_t) / CLOCKS_PER_SEC >= delay_time)
     {
@@ -373,7 +370,7 @@ void draw_object(object *head)
 void spawn_enemy(object **head)
 {
     char *enemy_sprite = choose_enemy_sprite();
-    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+    int enemy_x = create_random_Xposition(MINX + 1, MAXX, strlen(enemy_sprite));
     add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
 
@@ -409,129 +406,46 @@ void move_object(object **head, int player_y)
     }
 }
 
-void add_collectables(collectable **coin_head, int x, int y, char *sprite) {
-    collectable *iterate_coin = *coin_head, *new_coin = (collectable *) malloc(sizeof(collectable));
-    new_coin->pos.x = x;
-    new_coin->pos.y = y;
-    new_coin->sprite = (char *) malloc(sizeof(char) * strlen(sprite));
-    strcpy(new_coin->sprite, sprite);
-    new_coin->next = NULL;
-    if (*coin_head == NULL) {
-        *coin_head = new_coin;
-    }
-    else {
-        while (iterate_coin->next != NULL) {
-            iterate_coin = iterate_coin->next;
-        }
-        iterate_coin->next = new_coin;
-    }
-}
-
-void spawn_collectables(collectable **coin) {
-    int coin_x = create_random_Xposition(MINX, MAXX, 0);
-    add_collectables(coin, coin_x, 0, "℗");
-}
-
-void draw_collectables(collectable *coin_head) {
-    collectable *iterate_coin = coin_head;
-
-    while (iterate_coin != NULL) {
-        screenGotoxy(iterate_coin->pos.x, iterate_coin->pos.y);
-        screenSetColor(GREEN, BLACK);
-        for (int i = 0; iterate_coin->sprite[i] != '\0' ; i++) {
-            printf("%c", iterate_coin->sprite[i]);
-        }
-
-        iterate_coin = iterate_coin->next;
-    }
-    screenSetColor(YELLOW, BLACK);
-}
-
-void move_collectables(collectable *coin_head, int vel) {
-    collectable *iterate_coin = coin_head;
-
-    while (iterate_coin != NULL) {
-        iterate_coin->pos.y += vel;
-        iterate_coin = iterate_coin->next;
-    }
-}
-
-void collision_collectables(collectable **coin_head, player ship) {
-    collectable *iterate_coin = *coin_head, *coin_temp = *coin_head;
-
-    if (*coin_head != NULL) {
-        for (int i = 0; iterate_coin->sprite[i] != '\0' ; i++) {
-            if (((ship.x <= iterate_coin->pos.x + i && ship.x + PLAYER_WIDTH - 1 >= iterate_coin->pos.x + i) &&
-                (ship.y <= iterate_coin->pos.y && ship.y + PLAYER_HEIGHT - 1 >= iterate_coin->pos.y)) ||
-                iterate_coin->pos.y >= MAXY) {
-
-                *coin_head = (*coin_head)->next;
-                free(coin_temp);
-
-                score += 50;
-                break;
-            }
-        }
-
-        int flag = 1;
-
-        while (iterate_coin->next != NULL) {
-            for (int i = 0; iterate_coin->next->sprite[i] != '\0' ; i++) {
-                if (((ship.x <= iterate_coin->next->pos.x + i && ship.x + PLAYER_WIDTH - 1 >= iterate_coin->next->pos.x + i) &&
-                    (ship.y <= iterate_coin->next->pos.y && ship.y + PLAYER_HEIGHT - 1 >= iterate_coin->next->pos.y)) ||
-                    iterate_coin->next->pos.y >= MAXY) {
-
-                    coin_temp = iterate_coin->next;
-                    iterate_coin->next = iterate_coin->next->next;
-                    free(coin_temp);
-
-                    flag = 0;
-                    score += 50;
-                    break;
-                }
-            }
-            iterate_coin = flag? iterate_coin->next : iterate_coin;
-            flag = 1;
-        }
-    }
-}
-
-void salvar(const char *nome, int score) {
-    FILE *arquivo;
-    Jogador jogadores[100];
+void save_score(const char *name, int score)
+{
+    FILE *file;
+    player_score players[100];
     int n = 0;
 
-    arquivo = fopen("hall.txt", "r");
-    while (fscanf(arquivo, "%20s %d", jogadores[n].nome, &jogadores[n].score) == 2)
+    file = fopen("hall.txt", "r");
+    while (fscanf(file, "%20s %d", players[n].name, &players[n].score) == 2)
     {
         n++;
     }
-    fclose(arquivo);
+    fclose(file);
 
-    Jogador novo;
-    strcpy(novo.nome, nome);
-    novo.score = score;
+    player_score new_player;
+    strcpy(new_player.name, name);
+    new_player.score = score;
 
-    jogadores[n++] = novo;
+    players[n++] = new_player;
 
+    // Ordena os jogadores pela pontuação
     for (int i = 0; i < n - 1; i++)
     {
         for (int j = i + 1; j < n; j++)
         {
-            if (jogadores[i].score < jogadores[j].score)
+            if (players[i].score < players[j].score)
             {
-                Jogador temp = jogadores[i];
-                jogadores[i] = jogadores[j];
-                jogadores[j] = temp;
+                player_score temp = players[i];
+                players[i] = players[j];
+                players[j] = temp;
             }
         }
     }
-    arquivo = fopen("hall.txt", "w");
+
+    // Salva os jogadores no arquivo
+    file = fopen("hall.txt", "w");
     for (int i = 0; i < n; i++)
     {
-        fprintf(arquivo, "%s %d\n", jogadores[i].nome, jogadores[i].score);
+        fprintf(file, "%s %d\n", players[i].name, players[i].score);
     }
-    fclose(arquivo);
+    fclose(file);
 }
 
 void draw_game_information(int score, particle *bullets)
@@ -555,105 +469,212 @@ void move(player *ship)
     ship->x += PLAYER_VEL * ship->direction;
 }
 
+void add_collectables(collectable **coin_head, int x, int y, char *sprite)
+{
+    collectable *iterate_coin = *coin_head, *new_coin = (collectable *)malloc(sizeof(collectable));
+    new_coin->pos.x = x;
+    new_coin->pos.y = y;
+    new_coin->sprite = (char *)malloc(sizeof(char) * strlen(sprite));
+    strcpy(new_coin->sprite, sprite);
+    new_coin->next = NULL;
+    if (*coin_head == NULL)
+    {
+        *coin_head = new_coin;
+    }
+    else
+    {
+        while (iterate_coin->next != NULL)
+        {
+            iterate_coin = iterate_coin->next;
+        }
+        iterate_coin->next = new_coin;
+    }
+}
+
+void spawn_collectables(collectable **coin)
+{
+    int coin_x = create_random_Xposition(MINX, MAXX, 0);
+    add_collectables(coin, coin_x, 0, "℗");
+}
+
+void draw_collectables(collectable *coin_head)
+{
+    collectable *iterate_coin = coin_head;
+
+    while (iterate_coin != NULL)
+    {
+        screenGotoxy(iterate_coin->pos.x, iterate_coin->pos.y);
+        screenSetColor(GREEN, BLACK);
+        for (int i = 0; iterate_coin->sprite[i] != '\0'; i++)
+        {
+            printf("%c", iterate_coin->sprite[i]);
+        }
+
+        iterate_coin = iterate_coin->next;
+    }
+    screenSetColor(YELLOW, BLACK);
+}
+
+void move_collectables(collectable *coin_head, int vel)
+{
+    collectable *iterate_coin = coin_head;
+
+    while (iterate_coin != NULL)
+    {
+        iterate_coin->pos.y += vel;
+        iterate_coin = iterate_coin->next;
+    }
+}
+
+void collision_collectables(collectable **coin_head, player ship)
+{
+    collectable *iterate_coin = *coin_head, *coin_temp = *coin_head;
+
+    if (*coin_head != NULL)
+    {
+        for (int i = 0; iterate_coin->sprite[i] != '\0'; i++)
+        {
+            if (((ship.x <= iterate_coin->pos.x + i && ship.x + PLAYER_WIDTH - 1 >= iterate_coin->pos.x + i) &&
+                 (ship.y <= iterate_coin->pos.y && ship.y + PLAYER_HEIGHT - 1 >= iterate_coin->pos.y)) ||
+                iterate_coin->pos.y >= MAXY)
+            {
+
+                *coin_head = (*coin_head)->next;
+                free(coin_temp);
+
+                score += 50;
+                break;
+            }
+        }
+
+        int flag = 1;
+
+        while (iterate_coin->next != NULL)
+        {
+            for (int i = 0; iterate_coin->next->sprite[i] != '\0'; i++)
+            {
+                if (((ship.x <= iterate_coin->next->pos.x + i && ship.x + PLAYER_WIDTH - 1 >= iterate_coin->next->pos.x + i) &&
+                     (ship.y <= iterate_coin->next->pos.y && ship.y + PLAYER_HEIGHT - 1 >= iterate_coin->next->pos.y)) ||
+                    iterate_coin->next->pos.y >= MAXY)
+                {
+
+                    coin_temp = iterate_coin->next;
+                    iterate_coin->next = iterate_coin->next->next;
+                    free(coin_temp);
+
+                    flag = 0;
+                    score += 50;
+                    break;
+                }
+            }
+            iterate_coin = flag ? iterate_coin->next : iterate_coin;
+            flag = 1;
+        }
+    }
+}
+
 int main()
 {
     screenInit(1);
     keyboardInit();
-    start_screen();
-    srand(time(0));
+    char name[4] = {0};
 
-    // char nome[21];
-    // printf("nome: ");
-    // scanf("%20s", nome);
-
-    player ship = {85, 18, 0, '>', NULL};
-    particle *ship_bullets = NULL;
-    collectable *coins = NULL;
-    object *enemy = NULL;
-    char *enemy_sprite = choose_enemy_sprite();
-    int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
-    add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-
-    clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), spawn_coin_clock = clock(),
-    coin_clock = clock(), bullet_clock = clock();
-
-    int run = 1;
-
-    while (run)
+    while (TRUE)
     {
-        if (keyhit())
+        start_screen();
+        srand(time(0));
+
+        player ship = {85, 18, 0, '>', NULL};
+        particle *ship_bullets = NULL;
+        object *enemy = NULL;
+        collectable *coins = NULL;
+        char *enemy_sprite = choose_enemy_sprite();
+        int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
+        add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
+        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(), spawn_coin_clock = clock(), coin_clock = clock();
+
+        while (TRUE)
         {
-            switch (readch())
+            if (keyhit())
             {
-            case 'a':
-                if (ship.x > MINX + 1)
+                switch (readch())
                 {
-                    ship.direction = -1;
-                    move(&ship);
+                case 'a':
+                    if (ship.x > MINX + 1)
+                    {
+                        ship.direction = -1;
+                        move(&ship);
+                    }
+                    break;
+                case 'd':
+                    if (ship.x < (MAXX - PLAYER_WIDTH - 1))
+                    {
+                        ship.direction = 1;
+                        move(&ship);
+                    }
+                    break;
+                case ' ':
+                    if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
+                    {
+                        add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
+                    }
+                    break;
+                default:
+                    break;
                 }
-                break;
-            case 'd':
-                if (ship.x < (MAXX - PLAYER_WIDTH - 1))
-                {
-                    ship.direction = 1;
-                    move(&ship);
-                }
-                break;
-            case ' ':
-                if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
-                {
-                    add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
-                }
-                break;
-            case 'x':
-                run = 0;
-                break;
-            default:
-                break;
             }
-        }
-        system("clear");
-        draw_border();
 
-        if (delay_to_action(0.01, &score_clock))
-        {
-            score += 10;
-        }
+            system("clear");
+            draw_border();
 
-        if (delay_to_action(0.002, &move_clock))
-        {
-            move_object(&enemy, ship.y);
-            if (delay_to_action(0.02, &spawn_clock))
+            if (delay_to_action(0.01, &score_clock))
             {
-                spawn_enemy(&enemy);
+                score += 10;
             }
-        }
 
-        if (delay_to_action(0.003, &coin_clock)) {
-            move_collectables(coins, COIN_VEL);
-            if (delay_to_action(0.03, &spawn_coin_clock)) {
-                spawn_collectables(&coins);
+            if (delay_to_action(0.002, &move_clock))
+            {
+                move_object(&enemy, ship.y);
+                if (delay_to_action(0.02, &spawn_clock))
+                {
+                    spawn_enemy(&enemy);
+                }
             }
+
+            if (delay_to_action(0.003, &coin_clock))
+            {
+                move_collectables(coins, COIN_VEL);
+                if (delay_to_action(0.03, &spawn_coin_clock))
+                {
+                    spawn_collectables(&coins);
+                }
+            }
+
+            // Condicional de fim de jogo, nave colidir com objeto
+            if (check_collision(ship, enemy) == 0)
+            {
+                game_over_screen(score, name);
+                save_score(name, score);
+                break;
+            }
+
+            handle_collision_object_bullet(&enemy, &ship_bullets);
+            collision_collectables(&coins, ship);
+
+            move_bullets(ship_bullets);
+            remove_bullets(&ship_bullets);
+            draw_object(enemy);
+            drawPlayer(player_sprite, ship);
+            draw_bullets(ship_bullets);
+            draw_collectables(coins);
+            draw_game_information(score, ship_bullets);
+
+            screenUpdate();
+            usleep(33333);
         }
-
-        run = check_collision(ship, enemy);
-        collision_collectables(&coins, ship);
-        handle_collision_object_bullet(&enemy, &ship_bullets);
-        move_bullets(ship_bullets);
-        remove_bullets(&ship_bullets);
-        draw_object(enemy);
-        drawPlayer(player_sprite, ship);
-        draw_bullets(ship_bullets);
-        draw_collectables(coins);
-        draw_game_information(score, ship_bullets);
-
-        screenUpdate();
-        usleep(33333);
     }
 
-    // salvar(nome, score);
     screenHomeCursor();
-    printf("Você Perdeu");
     usleep(100000);
     keyboardDestroy();
     screenDestroy();
