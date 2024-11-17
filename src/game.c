@@ -673,6 +673,7 @@ int main()
             {
                 game_over_screen(score, name);
                 save_score(name, score);
+                score = 0;
                 break;
             }
 
