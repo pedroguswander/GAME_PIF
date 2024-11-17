@@ -7,7 +7,7 @@
 #include "timer.h"
 #include "ui_utils.h"
 
-#define PLAYER_VEL 1.1
+#define PLAYER_VEL 1
 #define BULLET_VEL 1
 #define OBJECT_VEL 2.5
 #define COIN_VEL 2
@@ -18,7 +18,7 @@
 int score = 0;
 typedef struct
 {
-    char name[50];
+    char name[4];
     int score;
 } player_score;
 
@@ -34,7 +34,7 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
 // char object_sprite4[] = "===**===";
-char object_sprite5[] = "=======";
+char object_sprite5[] = "=========";
 
 typedef struct position
 {
@@ -156,7 +156,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
                             prev_object->next = curr_object->next;
                         }
 
-                        score += 100;
+                        score += 25;
                         free(curr_object->sprite);
                         free(curr_object);
 
@@ -300,18 +300,25 @@ int len_bullets(particle *head)
 char *choose_enemy_sprite()
 {
     unsigned int seed = time(0);
-    int sprite_choice = rand_r(&seed) % 3 + 1;
+    int sprite_choice = rand_r(&seed) % 10 + 1;
 
     switch (sprite_choice)
     {
     case 1:
-        return object_sprite2;
     case 2:
-        return object_sprite3;
     case 3:
+    case 4:
+    case 5:
         return object_sprite5;
-    default:
+    case 6:
+    case 7:
+    case 8:
         return object_sprite2;
+    case 9:
+    case 10:
+        return object_sprite3;
+    default:
+        return object_sprite5;
     }
 }
 
@@ -654,7 +661,7 @@ int main()
 
             if (delay_to_action(0.01, &score_clock))
             {
-                score += 10;
+                score += 5;
             }
 
             if (delay_to_action(0.003, &move_clock))
