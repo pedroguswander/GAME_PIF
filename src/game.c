@@ -7,11 +7,11 @@
 #include "timer.h"
 #include "ui_utils.h"
 
-#define PLAYER_VEL 1
+#define PLAYER_VEL 1.1
 #define BULLET_VEL 1
 #define OBJECT_VEL 2.5
 #define COIN_VEL 2
-#define PLAYER_HEIGHT 3
+#define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
 #define TRUE 1
 
@@ -24,8 +24,12 @@ typedef struct
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
+    {'/', '=', '\\'}};
+
+/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
+    {' ', '^', ' '},
     {'/', '|', '\\'},
-    {'<', '-', '>'}};
+    {'<', '-', '>'}};*/
 // char object_sprite1[] = "===^^^===";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
@@ -132,7 +136,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
 
         while (curr_object != NULL)
         {
-            if (curr_bullet->pos.y == curr_object->pos.y)
+            if (abs(curr_bullet->pos.y - curr_object->pos.y) <= 1)
             {
                 int relative_x = curr_bullet->pos.x - curr_object->pos.x;
                 if (relative_x >= 0 && relative_x < strlen(curr_object->sprite))
@@ -362,12 +366,14 @@ void draw_object(object *head)
     {
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++)
         {
-            if (iterate_object->sprite[i] == '/' || iterate_object->sprite[i] == '-') {
+            if (iterate_object->sprite[i] == '/' || iterate_object->sprite[i] == '-')
+            {
                 screenSetColor(RED, BLACK);
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
             }
-            else {
+            else
+            {
                 screenSetColor(MAGENTA, BLACK);
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
@@ -603,12 +609,12 @@ int main()
         int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
         add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
         clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(),
-        spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
+                spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
         int out_of_bullets = 0;
 
         while (TRUE)
         {
-            out_of_bullets = out_of_bullets? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
+            out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
             {
@@ -629,12 +635,13 @@ int main()
                     }
                     break;
                 case ' ':
-                    if (!out_of_bullets) {
+                    if (!out_of_bullets)
+                    {
                         if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
                         {
                             add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
                         }
-                        out_of_bullets = len_bullets(ship_bullets) == 2? 1 : 0;
+                        out_of_bullets = len_bullets(ship_bullets) == 2 ? 1 : 0;
                     }
                     break;
                 default:
@@ -650,10 +657,10 @@ int main()
                 score += 10;
             }
 
-            if (delay_to_action(0.002, &move_clock))
+            if (delay_to_action(0.003, &move_clock))
             {
                 move_object(&enemy, ship.y);
-                if (delay_to_action(0.02, &spawn_clock))
+                if (delay_to_action(0.015, &spawn_clock))
                 {
                     spawn_enemy(&enemy);
                 }
@@ -668,25 +675,24 @@ int main()
                 }
             }
 
-            // Condicional de fim de jogo, nave colidir com objeto
+            move_bullets(ship_bullets);
+            remove_bullets(&ship_bullets);
+            draw_object(enemy);
+            draw_bullets(ship_bullets);
+            draw_collectables(coins);
+            draw_game_information(score, ship_bullets, out_of_bullets);
+
+            handle_collision_object_bullet(&enemy, &ship_bullets);
+            collision_collectables(&coins, ship);
             if (check_collision(ship, enemy) == 0)
             {
+                sleep(1);
                 game_over_screen(score, name);
                 save_score(name, score);
                 score = 0;
                 break;
             }
-
-            handle_collision_object_bullet(&enemy, &ship_bullets);
-            collision_collectables(&coins, ship);
-
-            move_bullets(ship_bullets);
-            remove_bullets(&ship_bullets);
-            draw_object(enemy);
             drawPlayer(player_sprite, ship);
-            draw_bullets(ship_bullets);
-            draw_collectables(coins);
-            draw_game_information(score, ship_bullets, out_of_bullets);
 
             screenUpdate();
             usleep(33333);
