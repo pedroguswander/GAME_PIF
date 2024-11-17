@@ -94,4 +94,4 @@ gcc ./src/*.c -I./include -o game
 
 ---
 
-Sinta-se à vontade para contribuir ou relatar problemas na seção de Issues! Divirta-se jogando Space Runner! 🚀
+Sinta-se à vontade para contribuir ou relatar problemas na seção de Issues! Divirta-se jogando Void Runner! 🚀
