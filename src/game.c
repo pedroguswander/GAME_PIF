@@ -7,7 +7,7 @@
 #include "timer.h"
 #include "ui_utils.h"
 
-#define PLAYER_VEL 1.5
+#define PLAYER_VEL 1.1
 #define BULLET_VEL 1
 #define OBJECT_VEL 2.5
 #define COIN_VEL 2
@@ -366,12 +366,14 @@ void draw_object(object *head)
     {
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++)
         {
-            if (iterate_object->sprite[i] == '/' || iterate_object->sprite[i] == '-') {
+            if (iterate_object->sprite[i] == '/' || iterate_object->sprite[i] == '-')
+            {
                 screenSetColor(RED, BLACK);
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
             }
-            else {
+            else
+            {
                 screenSetColor(MAGENTA, BLACK);
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
@@ -607,12 +609,12 @@ int main()
         int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
         add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
         clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(),
-        spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
+                spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
         int out_of_bullets = 0;
 
         while (TRUE)
         {
-            out_of_bullets = out_of_bullets? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
+            out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
             {
@@ -633,12 +635,13 @@ int main()
                     }
                     break;
                 case ' ':
-                    if (!out_of_bullets) {
+                    if (!out_of_bullets)
+                    {
                         if (len_bullets(ship_bullets) < 2 && delay_to_action(0.001, &bullet_clock))
                         {
                             add_bullet(&ship_bullets, ship.x + 1, ship.y - 1, '|');
                         }
-                        out_of_bullets = len_bullets(ship_bullets) == 2? 1 : 0;
+                        out_of_bullets = len_bullets(ship_bullets) == 2 ? 1 : 0;
                     }
                     break;
                 default:
