@@ -136,7 +136,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
 
         while (curr_object != NULL)
         {
-            if (curr_bullet->pos.y == curr_object->pos.y)
+            if (abs(curr_bullet->pos.y - curr_object->pos.y) <= 1)
             {
                 int relative_x = curr_bullet->pos.x - curr_object->pos.x;
                 if (relative_x >= 0 && relative_x < strlen(curr_object->sprite))
