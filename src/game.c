@@ -7,11 +7,11 @@
 #include "timer.h"
 #include "ui_utils.h"
 
-#define PLAYER_VEL 1
+#define PLAYER_VEL 1.5
 #define BULLET_VEL 1
 #define OBJECT_VEL 2.5
 #define COIN_VEL 2
-#define PLAYER_HEIGHT 3
+#define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
 #define TRUE 1
 
@@ -24,8 +24,12 @@ typedef struct
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
+    {'/', '=', '\\'}};
+
+/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
+    {' ', '^', ' '},
     {'/', '|', '\\'},
-    {'<', '-', '>'}};
+    {'<', '-', '>'}};*/
 // char object_sprite1[] = "===^^^===";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
@@ -650,10 +654,10 @@ int main()
                 score += 10;
             }
 
-            if (delay_to_action(0.002, &move_clock))
+            if (delay_to_action(0.003, &move_clock))
             {
                 move_object(&enemy, ship.y);
-                if (delay_to_action(0.02, &spawn_clock))
+                if (delay_to_action(0.015, &spawn_clock))
                 {
                     spawn_enemy(&enemy);
                 }
@@ -668,24 +672,24 @@ int main()
                 }
             }
 
-            // Condicional de fim de jogo, nave colidir com objeto
-            if (check_collision(ship, enemy) == 0)
-            {
-                game_over_screen(score, name);
-                save_score(name, score);
-                break;
-            }
-
-            handle_collision_object_bullet(&enemy, &ship_bullets);
-            collision_collectables(&coins, ship);
-
             move_bullets(ship_bullets);
             remove_bullets(&ship_bullets);
             draw_object(enemy);
-            drawPlayer(player_sprite, ship);
             draw_bullets(ship_bullets);
             draw_collectables(coins);
             draw_game_information(score, ship_bullets, out_of_bullets);
+
+            handle_collision_object_bullet(&enemy, &ship_bullets);
+            collision_collectables(&coins, ship);
+            if (check_collision(ship, enemy) == 0)
+            {
+                sleep(1);
+                game_over_screen(score, name);
+                save_score(name, score);
+                score = 0;
+                break;
+            }
+            drawPlayer(player_sprite, ship);
 
             screenUpdate();
             usleep(33333);
