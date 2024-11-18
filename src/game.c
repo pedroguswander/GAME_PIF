@@ -668,7 +668,7 @@ int main()
                     }
                     break;
                 case 'd':
-                    if (ship.x < (MAXX - PLAYER_WIDTH - 1))
+                    if (ship.x < (MAXX - PLAYER_WIDTH))
                     {
                         ship.direction = 1;
                         move(&ship);
