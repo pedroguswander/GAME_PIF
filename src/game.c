@@ -15,27 +15,6 @@
 #define PLAYER_WIDTH 3
 #define TRUE 1
 
-int score = 0;
-typedef struct
-{
-    char name[4];
-    int score;
-} player_score;
-
-char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
-    {' ', '^', ' '},
-    {'/', '=', '\\'}};
-
-/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
-    {' ', '^', ' '},
-    {'/', '|', '\\'},
-    {'<', '-', '>'}};*/
-// char object_sprite1[] = "===^^^===";
-char object_sprite2[] = "===//===";
-char object_sprite3[] = "====---====";
-// char object_sprite4[] = "===**===";
-char object_sprite5[] = "=========";
-
 typedef struct position
 {
     int x;
@@ -76,6 +55,54 @@ typedef struct collectable
     struct collectable *next;
 } collectable;
 
+int delay_to_action(double delay_time, clock_t *last_t);
+int check_collision(player ship, object *objects);
+int is_obj_destroyed(particle *bullet, object *obj);
+void handle_collision_object_bullet(object **objects, particle **bullets);
+void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship);
+void draw_bullets(particle *head);
+void add_bullet(particle **head, int x, int y, char img);
+void move_bullets(particle *head);
+void remove_bullets(particle **head);
+int len_bullets(particle *head);
+char *choose_enemy_sprite();
+int define_enemy_type(object *enemy);
+void add_object(object **head, int x, int y, int life, char *sprite);
+void draw_object(object *head);
+int create_random_Xposition(int minx, int maxx);
+void spawn_enemy(object **head);
+void spawn_collectables(collectable **coin);
+void move_object(object **head, int player_y);
+void save_score(const char *name, int score);
+void draw_game_information(int score, particle *bullets, int out_of_bullets);
+void move(player *ship);
+void add_collectables(collectable **coin_head, int x, int y, char *sprite);
+void draw_collectables(collectable *coin_head);
+void move_collectables(collectable *coin_head, int vel);
+void collision_collectables(collectable **coin_head, player ship);
+
+
+int score = 0;
+typedef struct
+{
+    char name[4];
+    int score;
+} player_score;
+
+char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
+    {' ', '^', ' '},
+    {'/', '=', '\\'}};
+
+/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
+    {' ', '^', ' '},
+    {'/', '|', '\\'},
+    {'<', '-', '>'}};*/
+char object_sprite1[] = "===============";
+char object_sprite2[] = "===//===";
+char object_sprite3[] = "====---====";
+// char object_sprite4[] = "===**===";
+char object_sprite5[] = "=========";
+
 int delay_to_action(double delay_time, clock_t *last_t)
 {
     clock_t current_t = clock();
@@ -85,11 +112,6 @@ int delay_to_action(double delay_time, clock_t *last_t)
         return 1;
     }
     return 0;
-}
-
-int create_random_Xposition(int minx, int maxx, int sprite_length)
-{
-    return rand() % (maxx - sprite_length - minx + 1) + minx;
 }
 
 int check_collision(player ship, object *objects)
@@ -144,7 +166,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
                     char hit_char = curr_object->sprite[relative_x];
 
                     if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') ||
-                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-'))
+                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || strcmp(curr_object->sprite, object_sprite1) && hit_char == '-')
                     {
 
                         if (prev_object == NULL)
@@ -308,15 +330,16 @@ char *choose_enemy_sprite()
     case 2:
     case 3:
     case 4:
-    case 5:
         return object_sprite5;
+    case 5:
     case 6:
     case 7:
-    case 8:
         return object_sprite2;
+    case 8:
     case 9:
-    case 10:
         return object_sprite3;
+    case 10:
+        return object_sprite1;
     default:
         return object_sprite5;
     }
@@ -345,7 +368,7 @@ int define_enemy_type(object *enemy)
 void add_object(object **head, int x, int y, int life, char *sprite)
 {
     object *iterate_object = *head, *new_object = (object *)malloc(sizeof(object));
-    new_object->sprite = (char *)malloc(sizeof(char) * strlen(sprite));
+    new_object->sprite = (char *)malloc(sizeof(char) * (strlen(sprite) + 1));
     strcpy(new_object->sprite, sprite);
     new_object->is_destructible = define_enemy_type(new_object);
     (new_object->pos).x = x;
@@ -391,12 +414,31 @@ void draw_object(object *head)
     screenSetColor(YELLOW, BLACK);
 }
 
-void spawn_enemy(object **head)
-{
+int create_random_Xposition(int minx, int maxx) {
+    // Retorna int entre maxx e minx
+    return rand() % (maxx - minx + 1) + minx;
+}
+
+
+void spawn_enemy(object **head) {
     char *enemy_sprite = choose_enemy_sprite();
-    int enemy_x = create_random_Xposition(MINX + 1, MAXX, strlen(enemy_sprite));
+    int sprite_length = strlen(enemy_sprite);
+
+    int adjusted_minx = MINX + 1;
+    int adjusted_maxx = MAXX - sprite_length;
+
+    int enemy_x = create_random_Xposition(adjusted_minx, adjusted_maxx);
     add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
+
+void spawn_collectables(collectable **coin) {
+    int adjusted_minx = MINX + 1;
+    int adjusted_maxx = MAXX - 1;
+
+    int coin_x = create_random_Xposition(adjusted_minx, adjusted_maxx);
+    add_collectables(coin, coin_x, 0, "℗");
+}
+
 
 void move_object(object **head, int player_y)
 {
@@ -444,7 +486,8 @@ void save_score(const char *name, int score)
     fclose(file);
 
     player_score new_player;
-    strcpy(new_player.name, name);
+    strncpy(new_player.name, name, 3);
+    new_player.name[3] = '\0';
     new_player.score = score;
 
     players[n++] = new_player;
@@ -513,12 +556,6 @@ void add_collectables(collectable **coin_head, int x, int y, char *sprite)
         }
         iterate_coin->next = new_coin;
     }
-}
-
-void spawn_collectables(collectable **coin)
-{
-    int coin_x = create_random_Xposition(MINX, MAXX, 0);
-    add_collectables(coin, coin_x, 0, "℗");
 }
 
 void draw_collectables(collectable *coin_head)
@@ -612,11 +649,7 @@ int main()
         particle *ship_bullets = NULL;
         object *enemy = NULL;
         collectable *coins = NULL;
-        char *enemy_sprite = choose_enemy_sprite();
-        int enemy_x = create_random_Xposition(MINX, MAXX, strlen(enemy_sprite));
-        add_object(&enemy, enemy_x, -2, 2, enemy_sprite);
-        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(),
-                spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
+        clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(), spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
         int out_of_bullets = 0;
 
         while (TRUE)
