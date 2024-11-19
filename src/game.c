@@ -65,7 +65,7 @@ void add_bullet(particle **head, int x, int y, char img);
 void move_bullets(particle *head);
 void remove_bullets(particle **head);
 int len_bullets(particle *head);
-char *choose_enemy_sprite();
+char *choose_enemy_sprite(int difficulty);
 int define_enemy_type(object *enemy);
 void add_object(object **head, int x, int y, int life, char *sprite);
 void draw_object(object *head);
@@ -80,7 +80,6 @@ void add_collectables(collectable **coin_head, int x, int y, char *sprite);
 void draw_collectables(collectable *coin_head);
 void move_collectables(collectable *coin_head, int vel);
 void collision_collectables(collectable **coin_head, player ship);
-
 
 int score = 0;
 typedef struct
@@ -100,8 +99,9 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
 char object_sprite1[] = "===============";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
-// char object_sprite4[] = "===**===";
+char object_sprite4[] = "====//====";
 char object_sprite5[] = "=========";
+char object_sprite6[] = "=====--=====";
 
 int delay_to_action(double delay_time, clock_t *last_t)
 {
@@ -166,7 +166,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
                     char hit_char = curr_object->sprite[relative_x];
 
                     if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') ||
-                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || strcmp(curr_object->sprite, object_sprite1) && hit_char == '-')
+                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || (strcmp(curr_object->sprite, object_sprite4) == 0 && hit_char == '/') || (strcmp(curr_object->sprite, object_sprite6) == 0 && hit_char == '-'))
                     {
 
                         if (prev_object == NULL)
@@ -319,29 +319,91 @@ int len_bullets(particle *head)
     return count;
 }
 
-char *choose_enemy_sprite()
+char *enemy_sprite_easy_option(int sprite_choice)
 {
-    unsigned int seed = time(0);
-    int sprite_choice = rand_r(&seed) % 10 + 1;
-
     switch (sprite_choice)
     {
     case 1:
     case 2:
     case 3:
     case 4:
-        return object_sprite5;
+        return object_sprite5; // 40% =========
     case 5:
     case 6:
     case 7:
-        return object_sprite2;
+        return object_sprite2; // 30% ===//===
     case 8:
     case 9:
-        return object_sprite3;
+        return object_sprite3; // 20% ====---====
     case 10:
-        return object_sprite1;
+        return object_sprite1; // 10% ===============
     default:
         return object_sprite5;
+    }
+}
+
+char *enemy_sprite_medium_option(int sprite_choice)
+{
+    switch (sprite_choice)
+    {
+    case 1:
+    case 2:
+    case 3:
+        return object_sprite5; // 30% =========
+    case 4:
+    case 5:
+    case 6:
+        return object_sprite4; // 30% ====//====
+    case 7:
+    case 8:
+        return object_sprite3; // 20% ====---====
+    case 9:
+    case 10:
+        return object_sprite1; // 20% ===============
+    default:
+        return object_sprite5;
+    }
+}
+
+char *enemy_sprite_hard_option(int sprite_choice)
+{
+    switch (sprite_choice)
+    {
+    case 1:
+    case 2:
+    case 3:
+        return object_sprite5; // 30% =========
+    case 4:
+    case 5:
+        return object_sprite4; // 20% ====//====
+    case 6:
+    case 7:
+    case 8:
+        return object_sprite6; // 30% =====--=====
+    case 9:
+    case 10:
+        return object_sprite1; // 20% =============
+    default:
+        return object_sprite5;
+    }
+}
+
+char *choose_enemy_sprite(int difficulty)
+{
+    unsigned int seed = time(0);
+    int sprite_choice = rand_r(&seed) % 10 + 1;
+
+    if (difficulty == 1)
+    {
+        enemy_sprite_easy_option(sprite_choice);
+    }
+    else if (difficulty == 2)
+    {
+        enemy_sprite_medium_option(sprite_choice);
+    }
+    else if (difficulty == 3)
+    {
+        enemy_sprite_hard_option(sprite_choice);
     }
 }
 
@@ -356,6 +418,18 @@ int define_enemy_type(object *enemy)
     if (strcmp(enemy->sprite, object_sprite3) == 0)
     {
         enemy->hit_area_init = 3;
+        enemy->hit_area_end = 7;
+        return 1;
+    }
+    if (strcmp(enemy->sprite, object_sprite4) == 0)
+    {
+        enemy->hit_area_init = 4;
+        enemy->hit_area_end = 5;
+        return 1;
+    }
+    if (strcmp(enemy->sprite, object_sprite6) == 0)
+    {
+        enemy->hit_area_init = 4;
         enemy->hit_area_end = 7;
         return 1;
     }
@@ -414,14 +488,29 @@ void draw_object(object *head)
     screenSetColor(YELLOW, BLACK);
 }
 
-int create_random_Xposition(int minx, int maxx) {
+int create_random_Xposition(int minx, int maxx)
+{
     // Retorna int entre maxx e minx
     return rand() % (maxx - minx + 1) + minx;
 }
 
+void spawn_enemy(object **head)
+{
+    char *enemy_sprite;
+    const int EASY = 1, MEDIUM = 2, HARD = 3;
 
-void spawn_enemy(object **head) {
-    char *enemy_sprite = choose_enemy_sprite();
+    if (score < 500)
+    {
+        enemy_sprite = choose_enemy_sprite(EASY);
+    }
+    else if (score >= 500 && score < 1000)
+    {
+        enemy_sprite = choose_enemy_sprite(MEDIUM);
+    }
+    else
+    {
+        enemy_sprite = choose_enemy_sprite(HARD);
+    }
     int sprite_length = strlen(enemy_sprite);
 
     int adjusted_minx = MINX + 1;
@@ -431,14 +520,14 @@ void spawn_enemy(object **head) {
     add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
 
-void spawn_collectables(collectable **coin) {
+void spawn_collectables(collectable **coin)
+{
     int adjusted_minx = MINX + 1;
     int adjusted_maxx = MAXX - 1;
 
     int coin_x = create_random_Xposition(adjusted_minx, adjusted_maxx);
     add_collectables(coin, coin_x, 0, "℗");
 }
-
 
 void move_object(object **head, int player_y)
 {
