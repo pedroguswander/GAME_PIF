@@ -9,7 +9,8 @@
 
 #define PLAYER_VEL 1
 #define BULLET_VEL 1
-#define OBJECT_VEL 2.5
+#define BASE_OBJECT_VEL 2.5
+#define MEDIUM_OBJECT_VEL 2.75
 #define COIN_VEL 2
 #define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
@@ -537,7 +538,14 @@ void move_object(object **head, int player_y)
 
         if (iterate_object->pos.y < player_y + 5)
         {
-            iterate_object->pos.y += OBJECT_VEL;
+            // if (score < 150)
+            // {
+            iterate_object->pos.y += BASE_OBJECT_VEL;
+            // }
+            // else
+            // {
+            // iterate_object->pos.y += MEDIUM_OBJECT_VEL;
+            // }
         }
         if (iterate_object->pos.y >= player_y + 5)
         {
