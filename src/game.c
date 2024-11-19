@@ -614,11 +614,15 @@ void save_score(const char *name, int score)
 
 void draw_game_information(int score, particle *bullets, int out_of_bullets)
 {
-    screenGotoxy(MAXX + 5, MINY + 1);
-    printf("SCORE %d", score);
+    int starting_x = MAXX + 5;
+    int starting_y = MINY + 1;
+
+    screenGotoxy(starting_x, starting_y);
+    printf("SCORE: %d", score);
 
     int bullets_to_shoot = len_bullets(bullets);
-    screenGotoxy(MAXX + 5, MINY + 4);
+    screenGotoxy(starting_x, starting_y + 3);
+    printf("BULLETS: ");
 
     if (bullets_to_shoot == 2 || out_of_bullets)
         printf(" ");
@@ -742,7 +746,7 @@ int main()
         start_screen();
         srand(time(0));
 
-        player ship = {85, 18, 0, '>', NULL};
+        player ship = {47, 18, 0, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
         collectable *coins = NULL;
@@ -818,6 +822,7 @@ int main()
             draw_bullets(ship_bullets);
             draw_collectables(coins);
             draw_game_information(score, ship_bullets, out_of_bullets);
+            draw_game_information_borders();
 
             handle_collision_object_bullet(&enemy, &ship_bullets);
             collision_collectables(&coins, ship);

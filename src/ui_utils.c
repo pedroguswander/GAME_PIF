@@ -362,3 +362,42 @@ void game_over_screen(int score, char *name)
         screenUpdate();
     }
 }
+
+void draw_game_information_borders()
+{
+    int starting_x = MAXX + 3;
+    int starting_y = MINY;
+    int width = 20;
+    int height = 8;
+
+    screenGotoxy(starting_x, starting_y);
+
+    printf("+");
+    for (int i = 0; i < width; i += 1)
+    {
+        printf("-");
+    }
+    printf("+");
+
+    screenGotoxy(starting_x, starting_y + 1);
+    for (int i = 0; i < height; i += 1)
+    {
+        printf("|");
+        screenGotoxy(starting_x, starting_y + 1 + i);
+    }
+
+    screenGotoxy(starting_x, starting_y + height);
+    printf("+");
+    for (int i = 0; i < width; i += 1)
+    {
+        printf("-");
+    }
+    printf("+");
+
+    screenGotoxy(starting_x + width + 1, starting_y + 1);
+    for (int i = 0; i < height; i += 1)
+    {
+        printf("|");
+        screenGotoxy(starting_x + width + 1, starting_y + 1 + i);
+    }
+}
