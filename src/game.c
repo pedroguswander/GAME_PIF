@@ -652,13 +652,13 @@ int main()
     screenInit(1);
     keyboardInit();
     char name[4] = {0};
-    int vidas = 3;
+    int vidas;
 
     while (TRUE)
     {
         start_screen();
         srand(time(0));
-
+        vidas = 3;
         player ship = {85, 18, 0, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
