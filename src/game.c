@@ -634,11 +634,25 @@ void collision_collectables(collectable **coin_head, player ship)
     }
 }
 
+void reset_player(object **enemy_head) {
+
+    object *current_enemy = *enemy_head;
+    while (current_enemy != NULL) {
+        object *temp = current_enemy;
+        current_enemy = current_enemy->next;
+        free(temp->sprite);
+        free(temp); 
+    }
+    *enemy_head = NULL;
+}
+
+
 int main()
 {
     screenInit(1);
     keyboardInit();
     char name[4] = {0};
+    int vidas = 3;
 
     while (TRUE)
     {
@@ -724,15 +738,23 @@ int main()
 
             handle_collision_object_bullet(&enemy, &ship_bullets);
             collision_collectables(&coins, ship);
-            if (check_collision(ship, enemy) == 0)
-            {
-                sleep(1);
-                game_over_screen(score, name);
-                save_score(name, score);
-                score = 0;
-                break;
-            }
+if (check_collision(ship, enemy) == 0) {
+    vidas--;
+    if (vidas > 0) {
+        reset_player(&enemy);
+        continue;
+    } else {
+        sleep(1);
+        game_over_screen(score, name);
+        save_score(name, score);
+        score = 0;
+        break;
+    }
+}
+
             drawPlayer(player_sprite, ship);
+            screenGotoxy(MINX, MAXY + 1);
+            printf("Vidas: %d", vidas);
 
             screenUpdate();
             usleep(33333);
