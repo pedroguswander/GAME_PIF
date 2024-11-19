@@ -15,6 +15,9 @@
 #define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
 #define TRUE 1
+#define EASY_SCORE 150
+#define MEDIUM_SCORE 400
+#define HARD_SCORE 3000
 
 typedef struct position
 {
@@ -83,6 +86,7 @@ void move_collectables(collectable *coin_head, int vel);
 void collision_collectables(collectable **coin_head, player ship);
 
 int score = 0;
+int level = 1;
 typedef struct
 {
     char name[4];
@@ -500,11 +504,11 @@ void spawn_enemy(object **head)
     char *enemy_sprite;
     const int EASY = 1, MEDIUM = 2, HARD = 3;
 
-    if (score < 500)
+    if (score < EASY_SCORE)
     {
         enemy_sprite = choose_enemy_sprite(EASY);
     }
-    else if (score >= 500 && score < 1000)
+    else if (score >= EASY_SCORE && score < MEDIUM_SCORE)
     {
         enemy_sprite = choose_enemy_sprite(MEDIUM);
     }
@@ -512,8 +516,8 @@ void spawn_enemy(object **head)
     {
         enemy_sprite = choose_enemy_sprite(HARD);
     }
-    int sprite_length = strlen(enemy_sprite);
 
+    int sprite_length = strlen(enemy_sprite);
     int adjusted_minx = MINX + 1;
     int adjusted_maxx = MAXX - sprite_length;
 
@@ -621,8 +625,8 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     printf("SCORE: %d", score);
 
     int bullets_to_shoot = len_bullets(bullets);
-    screenGotoxy(starting_x, starting_y + 3);
-    printf("BULLETS: ");
+    screenGotoxy(starting_x, starting_y + 2);
+    printf("BALAS: ");
 
     if (bullets_to_shoot == 2 || out_of_bullets)
         printf(" ");
@@ -630,6 +634,20 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
         printf("| ");
     else if (bullets_to_shoot == 0)
         printf("| |");
+
+    screenGotoxy(starting_x, starting_y + 4);
+    if (level == 1)
+    {
+        printf("NÍVEL: Easy");
+    }
+    else if (level == 2)
+    {
+        printf("NÍVEL: Medium");
+    }
+    else if (level == 3)
+    {
+        printf("NÍVEL: Hard");
+    }
 }
 
 void move(player *ship)
@@ -755,6 +773,14 @@ int main()
 
         while (TRUE)
         {
+            if (score >= EASY_SCORE && score < MEDIUM_SCORE)
+            {
+                level = 2;
+            }
+            else if (score >= MEDIUM_SCORE)
+            {
+                level = 3;
+            }
             out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
