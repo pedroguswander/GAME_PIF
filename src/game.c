@@ -98,10 +98,6 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
     {'/', '=', '\\'}};
 
-/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
-    {' ', '^', ' '},
-    {'/', '|', '\\'},
-    {'<', '-', '>'}};*/
 char object_sprite1[] = "===============";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
@@ -333,16 +329,16 @@ char *enemy_sprite_easy_option(int sprite_choice)
     case 2:
     case 3:
     case 4:
-        return object_sprite5; // 40% =========
+        return object_sprite5;
     case 5:
     case 6:
     case 7:
-        return object_sprite2; // 30% ===//===
+        return object_sprite2;
     case 8:
     case 9:
-        return object_sprite3; // 20% ====---====
+        return object_sprite3;
     case 10:
-        return object_sprite1; // 10% ===============
+        return object_sprite1;
     default:
         return object_sprite5;
     }
@@ -355,17 +351,17 @@ char *enemy_sprite_medium_option(int sprite_choice)
     case 1:
     case 2:
     case 3:
-        return object_sprite5; // 30% =========
+        return object_sprite5;
     case 4:
     case 5:
     case 6:
-        return object_sprite4; // 30% ====//====
+        return object_sprite4;
     case 7:
     case 8:
-        return object_sprite3; // 20% ====---====
+        return object_sprite3;
     case 9:
     case 10:
-        return object_sprite1; // 20% ===============
+        return object_sprite1;
     default:
         return object_sprite5;
     }
@@ -378,17 +374,17 @@ char *enemy_sprite_hard_option(int sprite_choice)
     case 1:
     case 2:
     case 3:
-        return object_sprite5; // 30% =========
+        return object_sprite5;
     case 4:
     case 5:
-        return object_sprite4; // 20% ====//====
+        return object_sprite4;
     case 6:
     case 7:
     case 8:
-        return object_sprite6; // 30% =====--=====
+        return object_sprite6;
     case 9:
     case 10:
-        return object_sprite1; // 20% =============
+        return object_sprite1;
     default:
         return object_sprite5;
     }
@@ -543,14 +539,7 @@ void move_object(object **head, int player_y)
 
         if (iterate_object->pos.y < player_y + 5)
         {
-            // if (score < 150)
-            // {
             iterate_object->pos.y += BASE_OBJECT_VEL;
-            // }
-            // else
-            // {
-            // iterate_object->pos.y += MEDIUM_OBJECT_VEL;
-            // }
         }
         if (iterate_object->pos.y >= player_y + 5)
         {
@@ -594,7 +583,6 @@ void save_score(const char *name, int score)
 
     players[n++] = new_player;
 
-    // Ordena os jogadores pela pontuação
     for (int i = 0; i < n - 1; i++)
     {
         for (int j = i + 1; j < n; j++)
