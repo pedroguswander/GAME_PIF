@@ -17,8 +17,8 @@
 #define TRUE 1
 #define EASY_SCORE 1000
 #define MEDIUM_SCORE 2000
-#define HARD_SCORE 2500
-#define PRO_DIFFICULTY 3000
+#define HARD_SCORE 3000
+#define PRO_DIFFICULTY 3500
 
 typedef struct position
 {
@@ -122,7 +122,8 @@ int check_collision(player ship, object **objects)
 {
     object *iterate_object = *objects, *temp = *objects;
 
-    if (*objects != NULL) {
+    if (*objects != NULL)
+    {
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++)
         {
             if (((ship.x <= (iterate_object->pos.x + i) && (ship.x + PLAYER_WIDTH - 1) >= iterate_object->pos.x + i)) && (ship.y <= (iterate_object->pos.y) && (ship.y + PLAYER_HEIGHT - 1) >= (iterate_object->pos.y)))
@@ -133,8 +134,10 @@ int check_collision(player ship, object **objects)
             }
         }
 
-        while(iterate_object->next != NULL) {
-            for (int i = 0; iterate_object->next->sprite[i] != '\0'; i++) {
+        while (iterate_object->next != NULL)
+        {
+            for (int i = 0; iterate_object->next->sprite[i] != '\0'; i++)
+            {
                 if (((ship.x <= (iterate_object->next->pos.x + i) && (ship.x + PLAYER_WIDTH - 1) >= iterate_object->next->pos.x + i)) && (ship.y <= (iterate_object->next->pos.y) && (ship.y + PLAYER_HEIGHT - 1) >= (iterate_object->next->pos.y)))
                 {
                     temp = iterate_object->next;
@@ -506,7 +509,6 @@ void draw_object(object *head)
 
 int create_random_Xposition(int minx, int maxx)
 {
-    // Retorna int entre maxx e minx
     return rand() % (maxx - minx + 1) + minx;
 }
 
@@ -658,15 +660,15 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     else if (level == 5)
     {
         printf("NÍVEL: Pro");
-        screenGotoxy(starting_x + 4, starting_y + 6);
+        screenGotoxy(starting_x + 5, starting_y + 6);
         printf("Boa sorte!");
     }
 
     screenGotoxy(starting_x, starting_y + 7);
-    for (int i = 0; i < lives; i++) {
+    for (int i = 0; i < lives; i++)
+    {
         printf("❤️");
     }
-
 }
 
 void move(player *ship)
@@ -898,13 +900,17 @@ int main()
 
             handle_collision_object_bullet(&enemy, &ship_bullets);
             collision_collectables(&coins, ship);
-            if (check_collision(ship, &enemy) == 0) {
+            if (check_collision(ship, &enemy) == 0)
+            {
                 lives--;
                 draw_game_information(score, ship_bullets, out_of_bullets);
-                if (lives > 0) {
-                    //reset_player(&enemy);
+                if (lives > 0)
+                {
+                    // reset_player(&enemy);
                     continue;
-                } else {
+                }
+                else
+                {
                     sleep(1);
                     game_over_screen(score, name);
                     save_score(name, score);
