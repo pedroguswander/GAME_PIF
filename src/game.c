@@ -17,8 +17,8 @@
 #define TRUE 1
 #define EASY_SCORE 1000
 #define MEDIUM_SCORE 2000
-#define HARD_SCORE 2500
-#define PRO_DIFFICULTY 3000
+#define HARD_SCORE 3000
+#define PRO_DIFFICULTY 3500
 
 typedef struct position
 {
