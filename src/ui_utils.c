@@ -8,7 +8,6 @@ int start_screen_option = 1;
 void draw_title()
 {
     int title_y = MINY + 2;
-    // Exibir título do jogo
     screenSetColor(YELLOW, BLACK);
     screenGotoxy((MAXX + MINX) / 2 - 7, title_y);
     printf("================");

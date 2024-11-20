@@ -667,6 +667,7 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     screenGotoxy(starting_x, starting_y + 7);
     for (int i = 0; i < lives; i++)
     {
+
         printf("❤️");
     }
 }
