@@ -368,7 +368,7 @@ void draw_game_information_borders()
     int starting_x = MAXX + 3;
     int starting_y = MINY;
     int width = 20;
-    int height = 8;
+    int height = 9;
 
     screenGotoxy(starting_x, starting_y);
 

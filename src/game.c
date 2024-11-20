@@ -61,7 +61,7 @@ typedef struct collectable
 } collectable;
 
 int delay_to_action(double delay_time, clock_t *last_t);
-int check_collision(player ship, object *objects);
+int check_collision(player ship, object **objects);
 int is_obj_destroyed(particle *bullet, object *obj);
 void handle_collision_object_bullet(object **objects, particle **bullets);
 void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship);
@@ -88,6 +88,8 @@ void collision_collectables(collectable **coin_head, player ship);
 
 int score = 0;
 int level = 1;
+int lives;
+
 typedef struct
 {
     char name[4];
@@ -116,21 +118,33 @@ int delay_to_action(double delay_time, clock_t *last_t)
     return 0;
 }
 
-int check_collision(player ship, object *objects)
+int check_collision(player ship, object **objects)
 {
-    object *iterate_object = objects;
+    object *iterate_object = *objects, *temp = *objects;
 
-    while (iterate_object != NULL)
-    {
-
+    if (*objects != NULL) {
         for (int i = 0; iterate_object->sprite[i] != '\0'; i++)
         {
             if (((ship.x <= (iterate_object->pos.x + i) && (ship.x + PLAYER_WIDTH - 1) >= iterate_object->pos.x + i)) && (ship.y <= (iterate_object->pos.y) && (ship.y + PLAYER_HEIGHT - 1) >= (iterate_object->pos.y)))
             {
+                *objects = iterate_object->next;
+                free(temp);
                 return 0;
             }
         }
-        iterate_object = iterate_object->next;
+
+        while(iterate_object->next != NULL) {
+            for (int i = 0; iterate_object->next->sprite[i] != '\0'; i++) {
+                if (((ship.x <= (iterate_object->next->pos.x + i) && (ship.x + PLAYER_WIDTH - 1) >= iterate_object->next->pos.x + i)) && (ship.y <= (iterate_object->next->pos.y) && (ship.y + PLAYER_HEIGHT - 1) >= (iterate_object->next->pos.y)))
+                {
+                    temp = iterate_object->next;
+                    iterate_object = iterate_object->next->next;
+                    free(temp);
+                    return 0;
+                }
+            }
+            iterate_object = iterate_object->next;
+        }
     }
     return 1;
 }
@@ -647,6 +661,12 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
         screenGotoxy(starting_x + 4, starting_y + 6);
         printf("Boa sorte!");
     }
+
+    screenGotoxy(starting_x, starting_y + 7);
+    for (int i = 0; i < lives; i++) {
+        printf("❤️");
+    }
+
 }
 
 void move(player *ship)
@@ -762,7 +782,7 @@ int main()
     {
         start_screen();
         srand(time(0));
-
+        lives = 3;
         player ship = {47, 18, 0, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
@@ -878,14 +898,19 @@ int main()
 
             handle_collision_object_bullet(&enemy, &ship_bullets);
             collision_collectables(&coins, ship);
-            if (check_collision(ship, enemy) == 0)
-            {
-                sleep(1);
-                game_over_screen(score, name);
-                save_score(name, score);
-                score = 0;
-                level = 1;
-                break;
+            if (check_collision(ship, &enemy) == 0) {
+                lives--;
+                draw_game_information(score, ship_bullets, out_of_bullets);
+                if (lives > 0) {
+                    //reset_player(&enemy);
+                    continue;
+                } else {
+                    sleep(1);
+                    game_over_screen(score, name);
+                    save_score(name, score);
+                    score = 0;
+                    break;
+                }
             }
             drawPlayer(player_sprite, ship);
 
