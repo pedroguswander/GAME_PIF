@@ -15,9 +15,10 @@
 #define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
 #define TRUE 1
-#define EASY_SCORE 150
-#define MEDIUM_SCORE 400
-#define HARD_SCORE 3000
+#define EASY_SCORE 1000
+#define MEDIUM_SCORE 2000
+#define HARD_SCORE 2500
+#define PRO_DIFFICULTY 3000
 
 typedef struct position
 {
@@ -648,6 +649,16 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     {
         printf("NÍVEL: Hard");
     }
+    else if (level == 4)
+    {
+        printf("NÍVEL: Very Hard");
+    }
+    else if (level == 5)
+    {
+        printf("NÍVEL: Pro");
+        screenGotoxy(starting_x + 4, starting_y + 6);
+        printf("Boa sorte!");
+    }
 }
 
 void move(player *ship)
@@ -777,10 +788,19 @@ int main()
             {
                 level = 2;
             }
-            else if (score >= MEDIUM_SCORE)
+            else if (score >= MEDIUM_SCORE && score < HARD_SCORE)
             {
                 level = 3;
             }
+            else if (score >= HARD_SCORE && score < PRO_DIFFICULTY)
+            {
+                level = 4;
+            }
+            else if (score >= PRO_DIFFICULTY)
+            {
+                level = 5;
+            }
+
             out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
@@ -827,9 +847,27 @@ int main()
             if (delay_to_action(0.003, &move_clock))
             {
                 move_object(&enemy, ship.y);
-                if (delay_to_action(0.015, &spawn_clock))
+
+                if (level == 5)
                 {
-                    spawn_enemy(&enemy);
+                    if (delay_to_action(0.0088, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
+                }
+                if (level == 4)
+                {
+                    if (delay_to_action(0.010, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
+                }
+                else
+                {
+                    if (delay_to_action(0.015, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
                 }
             }
 
@@ -858,6 +896,7 @@ int main()
                 game_over_screen(score, name);
                 save_score(name, score);
                 score = 0;
+                level = 1;
                 break;
             }
             drawPlayer(player_sprite, ship);
