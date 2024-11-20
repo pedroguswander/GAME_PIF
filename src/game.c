@@ -9,11 +9,16 @@
 
 #define PLAYER_VEL 1
 #define BULLET_VEL 1
-#define OBJECT_VEL 2.5
+#define BASE_OBJECT_VEL 2.5
+#define MEDIUM_OBJECT_VEL 2.75
 #define COIN_VEL 2
 #define PLAYER_HEIGHT 2
 #define PLAYER_WIDTH 3
 #define TRUE 1
+#define EASY_SCORE 1000
+#define MEDIUM_SCORE 2000
+#define HARD_SCORE 2500
+#define PRO_DIFFICULTY 3000
 
 typedef struct position
 {
@@ -65,7 +70,7 @@ void add_bullet(particle **head, int x, int y, char img);
 void move_bullets(particle *head);
 void remove_bullets(particle **head);
 int len_bullets(particle *head);
-char *choose_enemy_sprite();
+char *choose_enemy_sprite(int difficulty);
 int define_enemy_type(object *enemy);
 void add_object(object **head, int x, int y, int life, char *sprite);
 void draw_object(object *head);
@@ -81,8 +86,8 @@ void draw_collectables(collectable *coin_head);
 void move_collectables(collectable *coin_head, int vel);
 void collision_collectables(collectable **coin_head, player ship);
 
-
 int score = 0;
+int level = 1;
 typedef struct
 {
     char name[4];
@@ -93,15 +98,12 @@ char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
     {'/', '=', '\\'}};
 
-/*char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
-    {' ', '^', ' '},
-    {'/', '|', '\\'},
-    {'<', '-', '>'}};*/
 char object_sprite1[] = "===============";
 char object_sprite2[] = "===//===";
 char object_sprite3[] = "====---====";
-// char object_sprite4[] = "===**===";
+char object_sprite4[] = "====//====";
 char object_sprite5[] = "=========";
+char object_sprite6[] = "=====--=====";
 
 int delay_to_action(double delay_time, clock_t *last_t)
 {
@@ -166,7 +168,7 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
                     char hit_char = curr_object->sprite[relative_x];
 
                     if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') ||
-                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || strcmp(curr_object->sprite, object_sprite1) && hit_char == '-')
+                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || (strcmp(curr_object->sprite, object_sprite4) == 0 && hit_char == '/') || (strcmp(curr_object->sprite, object_sprite6) == 0 && hit_char == '-'))
                     {
 
                         if (prev_object == NULL)
@@ -319,11 +321,8 @@ int len_bullets(particle *head)
     return count;
 }
 
-char *choose_enemy_sprite()
+char *enemy_sprite_easy_option(int sprite_choice)
 {
-    unsigned int seed = time(0);
-    int sprite_choice = rand_r(&seed) % 10 + 1;
-
     switch (sprite_choice)
     {
     case 1:
@@ -345,6 +344,71 @@ char *choose_enemy_sprite()
     }
 }
 
+char *enemy_sprite_medium_option(int sprite_choice)
+{
+    switch (sprite_choice)
+    {
+    case 1:
+    case 2:
+    case 3:
+        return object_sprite5;
+    case 4:
+    case 5:
+    case 6:
+        return object_sprite4;
+    case 7:
+    case 8:
+        return object_sprite3;
+    case 9:
+    case 10:
+        return object_sprite1;
+    default:
+        return object_sprite5;
+    }
+}
+
+char *enemy_sprite_hard_option(int sprite_choice)
+{
+    switch (sprite_choice)
+    {
+    case 1:
+    case 2:
+    case 3:
+        return object_sprite5;
+    case 4:
+    case 5:
+        return object_sprite4;
+    case 6:
+    case 7:
+    case 8:
+        return object_sprite6;
+    case 9:
+    case 10:
+        return object_sprite1;
+    default:
+        return object_sprite5;
+    }
+}
+
+char *choose_enemy_sprite(int difficulty)
+{
+    unsigned int seed = time(0);
+    int sprite_choice = rand_r(&seed) % 10 + 1;
+
+    if (difficulty == 1)
+    {
+        enemy_sprite_easy_option(sprite_choice);
+    }
+    else if (difficulty == 2)
+    {
+        enemy_sprite_medium_option(sprite_choice);
+    }
+    else if (difficulty == 3)
+    {
+        enemy_sprite_hard_option(sprite_choice);
+    }
+}
+
 int define_enemy_type(object *enemy)
 {
     if (strcmp(enemy->sprite, object_sprite2) == 0)
@@ -356,6 +420,18 @@ int define_enemy_type(object *enemy)
     if (strcmp(enemy->sprite, object_sprite3) == 0)
     {
         enemy->hit_area_init = 3;
+        enemy->hit_area_end = 7;
+        return 1;
+    }
+    if (strcmp(enemy->sprite, object_sprite4) == 0)
+    {
+        enemy->hit_area_init = 4;
+        enemy->hit_area_end = 5;
+        return 1;
+    }
+    if (strcmp(enemy->sprite, object_sprite6) == 0)
+    {
+        enemy->hit_area_init = 4;
         enemy->hit_area_end = 7;
         return 1;
     }
@@ -414,16 +490,31 @@ void draw_object(object *head)
     screenSetColor(YELLOW, BLACK);
 }
 
-int create_random_Xposition(int minx, int maxx) {
+int create_random_Xposition(int minx, int maxx)
+{
     // Retorna int entre maxx e minx
     return rand() % (maxx - minx + 1) + minx;
 }
 
+void spawn_enemy(object **head)
+{
+    char *enemy_sprite;
+    const int EASY = 1, MEDIUM = 2, HARD = 3;
 
-void spawn_enemy(object **head) {
-    char *enemy_sprite = choose_enemy_sprite();
+    if (score < EASY_SCORE)
+    {
+        enemy_sprite = choose_enemy_sprite(EASY);
+    }
+    else if (score >= EASY_SCORE && score < MEDIUM_SCORE)
+    {
+        enemy_sprite = choose_enemy_sprite(MEDIUM);
+    }
+    else
+    {
+        enemy_sprite = choose_enemy_sprite(HARD);
+    }
+
     int sprite_length = strlen(enemy_sprite);
-
     int adjusted_minx = MINX + 1;
     int adjusted_maxx = MAXX - sprite_length;
 
@@ -431,14 +522,14 @@ void spawn_enemy(object **head) {
     add_object(head, enemy_x, -2, 2, enemy_sprite);
 }
 
-void spawn_collectables(collectable **coin) {
+void spawn_collectables(collectable **coin)
+{
     int adjusted_minx = MINX + 1;
     int adjusted_maxx = MAXX - 1;
 
     int coin_x = create_random_Xposition(adjusted_minx, adjusted_maxx);
     add_collectables(coin, coin_x, 0, "℗");
 }
-
 
 void move_object(object **head, int player_y)
 {
@@ -448,7 +539,7 @@ void move_object(object **head, int player_y)
 
         if (iterate_object->pos.y < player_y + 5)
         {
-            iterate_object->pos.y += OBJECT_VEL;
+            iterate_object->pos.y += BASE_OBJECT_VEL;
         }
         if (iterate_object->pos.y >= player_y + 5)
         {
@@ -492,7 +583,6 @@ void save_score(const char *name, int score)
 
     players[n++] = new_player;
 
-    // Ordena os jogadores pela pontuação
     for (int i = 0; i < n - 1; i++)
     {
         for (int j = i + 1; j < n; j++)
@@ -517,11 +607,15 @@ void save_score(const char *name, int score)
 
 void draw_game_information(int score, particle *bullets, int out_of_bullets)
 {
-    screenGotoxy(MAXX + 5, MINY + 1);
-    printf("SCORE %d", score);
+    int starting_x = MAXX + 5;
+    int starting_y = MINY + 1;
+
+    screenGotoxy(starting_x, starting_y);
+    printf("SCORE: %d", score);
 
     int bullets_to_shoot = len_bullets(bullets);
-    screenGotoxy(MAXX + 5, MINY + 4);
+    screenGotoxy(starting_x, starting_y + 2);
+    printf("BALAS: ");
 
     if (bullets_to_shoot == 2 || out_of_bullets)
         printf(" ");
@@ -529,6 +623,30 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
         printf("| ");
     else if (bullets_to_shoot == 0)
         printf("| |");
+
+    screenGotoxy(starting_x, starting_y + 4);
+    if (level == 1)
+    {
+        printf("NÍVEL: Easy");
+    }
+    else if (level == 2)
+    {
+        printf("NÍVEL: Medium");
+    }
+    else if (level == 3)
+    {
+        printf("NÍVEL: Hard");
+    }
+    else if (level == 4)
+    {
+        printf("NÍVEL: Very Hard");
+    }
+    else if (level == 5)
+    {
+        printf("NÍVEL: Pro");
+        screenGotoxy(starting_x + 4, starting_y + 6);
+        printf("Boa sorte!");
+    }
 }
 
 void move(player *ship)
@@ -634,32 +752,18 @@ void collision_collectables(collectable **coin_head, player ship)
     }
 }
 
-void reset_player(object **enemy_head) {
-
-    object *current_enemy = *enemy_head;
-    while (current_enemy != NULL) {
-        object *temp = current_enemy;
-        current_enemy = current_enemy->next;
-        free(temp->sprite);
-        free(temp); 
-    }
-    *enemy_head = NULL;
-}
-
-
 int main()
 {
     screenInit(1);
     keyboardInit();
     char name[4] = {0};
-    int vidas = 3;
 
     while (TRUE)
     {
         start_screen();
         srand(time(0));
 
-        player ship = {85, 18, 0, '>', NULL};
+        player ship = {47, 18, 0, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
         collectable *coins = NULL;
@@ -668,6 +772,23 @@ int main()
 
         while (TRUE)
         {
+            if (score >= EASY_SCORE && score < MEDIUM_SCORE)
+            {
+                level = 2;
+            }
+            else if (score >= MEDIUM_SCORE && score < HARD_SCORE)
+            {
+                level = 3;
+            }
+            else if (score >= HARD_SCORE && score < PRO_DIFFICULTY)
+            {
+                level = 4;
+            }
+            else if (score >= PRO_DIFFICULTY)
+            {
+                level = 5;
+            }
+
             out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
@@ -714,9 +835,27 @@ int main()
             if (delay_to_action(0.003, &move_clock))
             {
                 move_object(&enemy, ship.y);
-                if (delay_to_action(0.015, &spawn_clock))
+
+                if (level == 5)
                 {
-                    spawn_enemy(&enemy);
+                    if (delay_to_action(0.0088, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
+                }
+                if (level == 4)
+                {
+                    if (delay_to_action(0.010, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
+                }
+                else
+                {
+                    if (delay_to_action(0.015, &spawn_clock))
+                    {
+                        spawn_enemy(&enemy);
+                    }
                 }
             }
 
@@ -735,26 +874,20 @@ int main()
             draw_bullets(ship_bullets);
             draw_collectables(coins);
             draw_game_information(score, ship_bullets, out_of_bullets);
+            draw_game_information_borders();
 
             handle_collision_object_bullet(&enemy, &ship_bullets);
             collision_collectables(&coins, ship);
-if (check_collision(ship, enemy) == 0) {
-    vidas--;
-    if (vidas > 0) {
-        reset_player(&enemy);
-        continue;
-    } else {
-        sleep(1);
-        game_over_screen(score, name);
-        save_score(name, score);
-        score = 0;
-        break;
-    }
-}
-
+            if (check_collision(ship, enemy) == 0)
+            {
+                sleep(1);
+                game_over_screen(score, name);
+                save_score(name, score);
+                score = 0;
+                level = 1;
+                break;
+            }
             drawPlayer(player_sprite, ship);
-            screenGotoxy(MINX, MAXY + 1);
-            printf("Vidas: %d", vidas);
 
             screenUpdate();
             usleep(33333);
