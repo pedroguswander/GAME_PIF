@@ -164,11 +164,22 @@ void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship)
         for (int j = 0; j < PLAYER_WIDTH; j++)
         {
             screenGotoxy(ship.x + j, ship.y + i);
+
+            if (invulnerability_time > 0)
+            {
+                screenSetColor(BLUE, BLACK);
+            }
+            else
+            {
+                screenSetColor(YELLOW, BLACK);
+            }
             printf("%c", ps[i][j]);
         }
     }
+    screenSetColor(YELLOW, BLACK);
     screenUpdate();
 }
+
 
 void draw_bullets(particle *head)
 {
