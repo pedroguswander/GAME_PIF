@@ -2,99 +2,17 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include "screen.h"
-#include "keyboard.h"
-#include "timer.h"
-#include "ui_utils.h"
-
-#define PLAYER_VEL 1
-#define BULLET_VEL 1
-#define BASE_OBJECT_VEL 2.5
-#define MEDIUM_OBJECT_VEL 2.75
-#define COIN_VEL 2
-#define PLAYER_HEIGHT 2
-#define PLAYER_WIDTH 3
-#define TRUE 1
-#define EASY_SCORE 1000
-#define MEDIUM_SCORE 2000
-#define HARD_SCORE 3000
-#define PRO_DIFFICULTY 3500
-
-typedef struct position
-{
-    int x;
-    int y;
-} position;
-
-typedef struct player
-{
-    int x;
-    int y;
-    int direction;
-    char img;
-    struct player *next;
-} player;
-
-typedef struct object
-{
-    position pos;
-    int life;
-    char *sprite;
-    int is_destructible;
-    int hit_area_init;
-    int hit_area_end;
-    struct object *next;
-} object;
-
-typedef struct particle
-{
-    position pos;
-    char img;
-    struct particle *next;
-} particle;
-
-typedef struct collectable
-{
-    position pos;
-    char *sprite;
-    struct collectable *next;
-} collectable;
-
-int delay_to_action(double delay_time, clock_t *last_t);
-int check_collision(player ship, object **objects);
-int is_obj_destroyed(particle *bullet, object *obj);
-void handle_collision_object_bullet(object **objects, particle **bullets);
-void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship);
-void draw_bullets(particle *head);
-void add_bullet(particle **head, int x, int y, char img);
-void move_bullets(particle *head);
-void remove_bullets(particle **head);
-int len_bullets(particle *head);
-char *choose_enemy_sprite(int difficulty);
-int define_enemy_type(object *enemy);
-void add_object(object **head, int x, int y, int life, char *sprite);
-void draw_object(object *head);
-int create_random_Xposition(int minx, int maxx);
-void spawn_enemy(object **head);
-void spawn_collectables(collectable **coin);
-void move_object(object **head, int player_y);
-void save_score(const char *name, int score);
-void draw_game_information(int score, particle *bullets, int out_of_bullets);
-void move(player *ship);
-void add_collectables(collectable **coin_head, int x, int y, char *sprite);
-void draw_collectables(collectable *coin_head);
-void move_collectables(collectable *coin_head, int vel);
-void collision_collectables(collectable **coin_head, player ship);
+#include <screen.h>
+#include <keyboard.h>
+#include <timer.h>
+#include <ui_utils.h>
+#include <game.h>
+#include <power_ups.h>
 
 int score = 0;
 int level = 1;
 int lives;
-
-typedef struct
-{
-    char name[4];
-    int score;
-} player_score;
+int invulnerability_time = 0;
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
@@ -626,9 +544,11 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     int starting_x = MAXX + 5;
     int starting_y = MINY + 1;
 
+    // Exibir pontuação
     screenGotoxy(starting_x, starting_y);
     printf("SCORE: %d", score);
 
+    // Exibir status das balas
     int bullets_to_shoot = len_bullets(bullets);
     screenGotoxy(starting_x, starting_y + 2);
     printf("BALAS: ");
@@ -640,7 +560,12 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     else if (bullets_to_shoot == 0)
         printf("| |");
 
+    // Exibir tempo de invulnerabilidade
     screenGotoxy(starting_x, starting_y + 4);
+    printf("Proteção: (%d)s", invulnerability_time);    
+
+    // Exibir nível
+    screenGotoxy(starting_x, starting_y + 6);
     if (level == 1)
     {
         printf("NÍVEL: Easy");
@@ -660,17 +585,18 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
     else if (level == 5)
     {
         printf("NÍVEL: Pro");
-        screenGotoxy(starting_x + 5, starting_y + 6);
+        screenGotoxy(starting_x + 5, starting_y + 8);
         printf("Boa sorte!");
     }
 
-    screenGotoxy(starting_x, starting_y + 7);
+    // Exibir vidas
+    screenGotoxy(starting_x, starting_y + 10);
     for (int i = 0; i < lives; i++)
     {
-
         printf("❤️");
     }
 }
+
 
 void move(player *ship)
 {
@@ -775,6 +701,69 @@ void collision_collectables(collectable **coin_head, player ship)
     }
 }
 
+void handle_shield_collisions(shield **shields_head, player *ship)
+{
+    shield *cur_shield = *shields_head, *prev_shield = NULL;
+
+    while (cur_shield != NULL)
+    {
+        int collided = 0;
+
+        for (int i = 0; cur_shield->sprite[i] != '\0'; i++)
+        {
+            if (ship->x <= cur_shield->pos.x + i && ship->x + PLAYER_WIDTH - 1 >= cur_shield->pos.x + i &&
+                ship->y <= cur_shield->pos.y && ship->y + PLAYER_HEIGHT - 1 >= cur_shield->pos.y)
+            {
+                collided = 1;
+                break;
+            }
+        }
+
+        if (collided)
+        {
+            invulnerability_time += 6;
+
+            if (cur_shield == *shields_head)
+            {
+                *shields_head = cur_shield->next;
+            }
+            else
+            {
+                prev_shield->next = cur_shield->next;
+            }
+
+            shield *temp = cur_shield;
+            cur_shield = cur_shield->next;
+
+            free(temp->sprite);
+            free(temp);
+        }
+        else if (cur_shield->pos.y >= MAXY)
+        {
+            if (cur_shield == *shields_head)
+            {
+                *shields_head = cur_shield->next;
+            }
+            else
+            {
+                prev_shield->next = cur_shield->next;
+            }
+
+            shield *temp = cur_shield;
+            cur_shield = cur_shield->next;
+
+            free(temp->sprite);
+            free(temp);
+        }
+        else
+        {
+            prev_shield = cur_shield;
+            cur_shield = cur_shield->next;
+        }
+    }
+}
+
+
 int main()
 {
     screenInit(1);
@@ -786,11 +775,13 @@ int main()
         start_screen();
         srand(time(0));
         lives = 3;
-        player ship = {47, 18, 0, '>', NULL};
+        player ship = {47, 18, 5, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
         collectable *coins = NULL;
+        shield *shield_power_ups = NULL;
         clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(), spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
+        clock_t shield_clock = clock(), spawn_shield_clock = clock(), invulnerability_clock = clock();
         int out_of_bullets = 0;
 
         while (TRUE)
@@ -891,6 +882,24 @@ int main()
                 }
             }
 
+            if (delay_to_action(0.003, &shield_clock)) {
+                move_shield_power_ups(shield_power_ups, SHIELD_VEL);
+                if (delay_to_action(0.15, &spawn_shield_clock)) {
+                    spawn_shields(&shield_power_ups);
+                }
+            }
+
+            
+            if (invulnerability_time > 0 && delay_to_action(0.01, &invulnerability_clock))
+            {
+                invulnerability_time -= 1;
+            }
+
+            
+
+            draw_shield_power_ups(shield_power_ups);
+            handle_shield_collisions(&shield_power_ups, &ship);
+
             move_bullets(ship_bullets);
             remove_bullets(&ship_bullets);
             draw_object(enemy);
@@ -903,11 +912,17 @@ int main()
             collision_collectables(&coins, ship);
             if (check_collision(ship, &enemy) == 0)
             {
+                if (invulnerability_time > 0)
+                {
+                    invulnerability_time = 0; // Invulnerabilidade desativada
+                    continue; // Evita perder vida
+                }
+
                 lives--;
                 draw_game_information(score, ship_bullets, out_of_bullets);
+
                 if (lives > 0)
                 {
-                    // reset_player(&enemy);
                     continue;
                 }
                 else
@@ -916,9 +931,11 @@ int main()
                     game_over_screen(score, name);
                     save_score(name, score);
                     score = 0;
+                    level = 1;
                     break;
                 }
             }
+
             drawPlayer(player_sprite, ship);
 
             screenUpdate();
