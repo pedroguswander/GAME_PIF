@@ -116,7 +116,7 @@ void show_credits()
     screenGotoxy(margin_x, start_y);
     printf("Desenvolvido por:");
     screenGotoxy(margin_x, start_y + 2);
-    printf("- Felipe Rêgo");
+    printf("- Felipe Andrade");
     screenGotoxy(margin_x, start_y + 3);
     printf("- Fernando Cavalcanti");
     screenGotoxy(margin_x, start_y + 4);

@@ -88,7 +88,7 @@ gcc ./src/*.c -I./include -o game
 
 # Equipe
 
-- **Felipe Rêgo**
+- **Felipe Andrade**
 - **Fernando Cavalcanti**
 - **Pedro Gusmão**
 
