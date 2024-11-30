@@ -502,12 +502,12 @@ void move_object(object **head, int player_y)
             iterate_object->pos.y += BASE_OBJECT_VEL;
 
             if (strcmp(iterate_object->sprite, object_sprite7) == 0) {
-                if (iterate_object->pos.x + 1 + strlen(iterate_object->sprite) > MAXX)
+                if (iterate_object->pos.x + 1 + strlen(iterate_object->sprite) > MAXX - 1)
                 {
                     iterate_object->direction = -1;
                 }
 
-                if (iterate_object->pos.x - 1 < MINX)
+                if (iterate_object->pos.x - 1 < MINX + 2)
                 {
                     iterate_object->direction = 1;
                 }
@@ -603,7 +603,7 @@ void draw_game_information(int score, particle *bullets, int out_of_bullets)
 
     // Exibir tempo de invulnerabilidade
     screenGotoxy(starting_x, starting_y + 4);
-    printf("Proteção: (%d)s", invulnerability_time);    
+    printf("SHIELD: (%d)s", invulnerability_time);    
 
     // Exibir nível
     screenGotoxy(starting_x, starting_y + 6);
