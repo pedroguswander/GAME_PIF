@@ -13,6 +13,7 @@ int score = 0;
 int level = 1;
 int lives;
 int invulnerability_time = 0;
+int direction_obj = 1;
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
@@ -24,6 +25,7 @@ char object_sprite3[] = "====---====";
 char object_sprite4[] = "====//====";
 char object_sprite5[] = "=========";
 char object_sprite6[] = "=====--=====";
+char object_sprite7[] = "===-----===";
 
 int delay_to_action(double delay_time, clock_t *last_t)
 {
@@ -103,7 +105,8 @@ void handle_collision_object_bullet(object **objects, particle **bullets)
                     char hit_char = curr_object->sprite[relative_x];
 
                     if ((strcmp(curr_object->sprite, object_sprite2) == 0 && hit_char == '/') ||
-                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || (strcmp(curr_object->sprite, object_sprite4) == 0 && hit_char == '/') || (strcmp(curr_object->sprite, object_sprite6) == 0 && hit_char == '-'))
+                        (strcmp(curr_object->sprite, object_sprite3) == 0 && hit_char == '-') || (strcmp(curr_object->sprite, object_sprite4) == 0 && hit_char == '/')
+                        || (strcmp(curr_object->sprite, object_sprite6) == 0 && hit_char == '-') || (strcmp(curr_object->sprite, object_sprite7) == 0 && hit_char == '-'))
                     {
 
                         if (prev_object == NULL)
@@ -304,10 +307,13 @@ char *enemy_sprite_medium_option(int sprite_choice)
         return object_sprite4;
     case 7:
     case 8:
-        return object_sprite3;
     case 9:
+        return object_sprite3;
     case 10:
+    case 11:
         return object_sprite1;
+    case 12:
+        return object_sprite7;
     default:
         return object_sprite5;
     }
@@ -331,6 +337,9 @@ char *enemy_sprite_hard_option(int sprite_choice)
     case 9:
     case 10:
         return object_sprite1;
+    case 11:
+    case 12:
+        return object_sprite7;
     default:
         return object_sprite5;
     }
@@ -339,7 +348,7 @@ char *enemy_sprite_hard_option(int sprite_choice)
 char *choose_enemy_sprite(int difficulty)
 {
     unsigned int seed = time(0);
-    int sprite_choice = rand_r(&seed) % 10 + 1;
+    int sprite_choice = rand_r(&seed) % 12 + 1;
 
     if (difficulty == 1)
     {
@@ -393,6 +402,7 @@ void add_object(object **head, int x, int y, int life, char *sprite)
     new_object->sprite = (char *)malloc(sizeof(char) * (strlen(sprite) + 1));
     strcpy(new_object->sprite, sprite);
     new_object->is_destructible = define_enemy_type(new_object);
+    new_object->direction = 1;
     (new_object->pos).x = x;
     (new_object->pos).y = y;
     new_object->next = NULL;
@@ -424,8 +434,13 @@ void draw_object(object *head)
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
             }
-            else
+            else if (strcmp(iterate_object->sprite, object_sprite7) == 0)
             {
+                screenSetColor(BROWN, BLACK);
+                screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
+                printf("%c", iterate_object->sprite[i]);
+            }
+            else {
                 screenSetColor(MAGENTA, BLACK);
                 screenGotoxy(iterate_object->pos.x + i, iterate_object->pos.y);
                 printf("%c", iterate_object->sprite[i]);
@@ -485,6 +500,21 @@ void move_object(object **head, int player_y)
         if (iterate_object->pos.y < player_y + 5)
         {
             iterate_object->pos.y += BASE_OBJECT_VEL;
+
+            if (strcmp(iterate_object->sprite, object_sprite7) == 0) {
+                if (iterate_object->pos.x + 1 + strlen(iterate_object->sprite) > MAXX)
+                {
+                    iterate_object->direction = -1;
+                }
+
+                if (iterate_object->pos.x - 1 < MINX)
+                {
+                    iterate_object->direction = 1;
+                }
+
+                iterate_object->pos.x += BASE_OBJECT_VEL * iterate_object->direction;
+            }
+
         }
         if (iterate_object->pos.y >= player_y + 5)
         {
@@ -732,6 +762,7 @@ void handle_shield_collisions(shield **shields_head, player *ship)
 
         if (collided)
         {
+            score += 50;
             invulnerability_time += 6;
 
             if (cur_shield == *shields_head)

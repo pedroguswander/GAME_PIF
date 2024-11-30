@@ -36,6 +36,7 @@ typedef struct object {
     int life;
     char *sprite;
     int is_destructible;
+    int direction;
     int hit_area_init;
     int hit_area_end;
     struct object *next;
