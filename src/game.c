@@ -13,7 +13,7 @@ int score = 0;
 int level = 1;
 int lives;
 int invulnerability_time = 0;
-int direction_obj = 1;
+int took_damage = 0;
 
 char player_sprite[PLAYER_HEIGHT][PLAYER_WIDTH] = {
     {' ', '^', ' '},
@@ -171,6 +171,10 @@ void drawPlayer(char (*ps)[PLAYER_WIDTH], player ship)
             if (invulnerability_time > 0)
             {
                 screenSetColor(BLUE, BLACK);
+            }
+            else if (took_damage)
+            {
+                screenSetColor(RED, BLACK);
             }
             else
             {
@@ -401,8 +405,8 @@ void add_object(object **head, int x, int y, int life, char *sprite)
     object *iterate_object = *head, *new_object = (object *)malloc(sizeof(object));
     new_object->sprite = (char *)malloc(sizeof(char) * (strlen(sprite) + 1));
     strcpy(new_object->sprite, sprite);
-    new_object->is_destructible = define_enemy_type(new_object);
-    new_object->direction = 1;
+    new_object->is_destructible = define_enemy_type(new_object); unsigned int seed = time(0);
+    new_object->direction = rand_r(&seed) % 2 + 1? 1: -1;
     (new_object->pos).x = x;
     (new_object->pos).y = y;
     new_object->next = NULL;
@@ -817,13 +821,14 @@ int main()
         start_screen();
         srand(time(0));
         lives = 3;
+        took_damage = 0;
         player ship = {47, 18, 5, '>', NULL};
         particle *ship_bullets = NULL;
         object *enemy = NULL;
         collectable *coins = NULL;
         shield *shield_power_ups = NULL;
         clock_t spawn_clock = clock(), move_clock = clock(), score_clock = clock(), bullet_clock = clock(), spawn_coin_clock = clock(), coin_clock = clock(), cooldown_clock = clock();
-        clock_t shield_clock = clock(), spawn_shield_clock = clock(), invulnerability_clock = clock();
+        clock_t shield_clock = clock(), spawn_shield_clock = clock(), invulnerability_clock = clock(), took_damage_clock = clock();
         int out_of_bullets = 0;
 
         while (TRUE)
@@ -844,7 +849,6 @@ int main()
             {
                 level = 5;
             }
-
             out_of_bullets = out_of_bullets ? !delay_to_action(0.01, &cooldown_clock) : out_of_bullets;
 
             if (keyhit())
@@ -931,13 +935,15 @@ int main()
                 }
             }
 
-            
+            if (delay_to_action(0.008, &took_damage_clock) && took_damage)
+            {
+                took_damage = 0;
+            }
+
             if (invulnerability_time > 0 && delay_to_action(0.01, &invulnerability_clock))
             {
                 invulnerability_time -= 1;
             }
-
-            
 
             draw_shield_power_ups(shield_power_ups);
             handle_shield_collisions(&shield_power_ups, &ship);
@@ -961,13 +967,11 @@ int main()
                 }
 
                 lives--;
+                took_damage = 1;
+
                 draw_game_information(score, ship_bullets, out_of_bullets);
 
-                if (lives > 0)
-                {
-                    continue;
-                }
-                else
+                if (lives <= 0)
                 {
                     sleep(1);
                     game_over_screen(score, name);
@@ -977,18 +981,13 @@ int main()
                     break;
                 }
             }
-
-            drawPlayer(player_sprite, ship);
+                drawPlayer(player_sprite, ship);
 
             screenUpdate();
             usleep(33333);
         }
     }
 
-    screenHomeCursor();
-    usleep(100000);
-    keyboardDestroy();
-    screenDestroy();
 
     return 0;
 }
