@@ -4,7 +4,16 @@ Void Runner é um jogo espacial emocionante, onde o jogador controla uma nave em
 
 O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a direita ou para a esquerda, enquanto tenta manter a nave intacta. A qualquer momento, uma colisão com um obstáculo resultará na perda do jogo. 
 
-# Imagens do Jogo
+# Sobre o Jogo :video_game:
+
+### Gameplay
+
+<details>
+  <summary>Clique para exibir</summary>
+  
+  ![Menu Inicial](imgs/start_screen.png)
+  
+</details>
 
 ### Menu Inicial
 
