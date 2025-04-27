@@ -6,14 +6,7 @@ O jogador deve manobrar a nave para desviar dos obstáculos, movendo-se para a d
 
 # Sobre o Jogo :video_game:
 
-### Gameplay
-
-<details>
-  <summary>Clique para exibir</summary>
-  
-  ![Menu Inicial](imgs/start_screen.png)
-  
-</details>
+ [Vídeo de gameplay](https://youtu.be/1fVhMnWWz88)
 
 ### Menu Inicial
 
